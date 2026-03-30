@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # TrueFoundry Deploy Skills installer
 #
-# Install:  curl -fsSL https://raw.githubusercontent.com/truefoundry/tfy-deployment-agent-skills/main/scripts/install.sh | bash
+# Install:  curl -fsSL https://raw.githubusercontent.com/truefoundry/tfy-deploy-skills/main/scripts/install.sh | bash
 # Options:  ... | bash -s -- [--global] [--local] [--agents claude,cursor,codex]
 #
 # Or run from inside the repo:  ./scripts/install.sh
 set -euo pipefail
 
-REPO="truefoundry/tfy-deployment-agent-skills"
+REPO="truefoundry/tfy-deploy-skills"
 BRANCH="main"
 DEFAULT_REF="$BRANCH"
 SOURCE_REF="${TFY_SKILLS_REF:-$DEFAULT_REF}"

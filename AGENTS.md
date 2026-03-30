@@ -1,4 +1,4 @@
-# TrueFoundry Deployment Agent Skills — Developer Guide
+# TrueFoundry Deploy Skills — Developer Guide
 
 A collection of 21 AI coding-agent skill definitions (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format. Skills let AI assistants deploy, monitor, and manage ML infrastructure on TrueFoundry.
 

@@ -1,6 +1,6 @@
-# TrueFoundry Deployment Agent Skills
+# TrueFoundry Deploy Skills
 
-[![CI](https://github.com/truefoundry/tfy-deployment-agent-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/truefoundry/tfy-deployment-agent-skills/actions/workflows/ci.yml)
+[![CI](https://github.com/truefoundry/tfy-deploy-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/truefoundry/tfy-deploy-skills/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Agent skills for deploying, monitoring, and managing ML infrastructure on [TrueFoundry](https://truefoundry.com). Follows the [Agent Skills](https://agentskills.io) open format.
@@ -10,7 +10,13 @@ Works with Claude Code, Cursor, Codex, OpenCode, Windsurf, Cline, and Roo Code.
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/truefoundry/tfy-deployment-agent-skills/main/scripts/install.sh | bash
+npx @anthropic-ai/skills add truefoundry/tfy-deploy-skills
+```
+
+**Fallback (curl):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/truefoundry/tfy-deploy-skills/main/scripts/install.sh | bash
 ```
 
 Restart your agent and start asking. If credentials are not set, your agent will prompt for them. You can also pre-set them via env vars or a `.env` file in your project root:
