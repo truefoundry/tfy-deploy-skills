@@ -1118,7 +1118,7 @@ alerts:
 
 ## Agent
 
-Register an AI agent with TrueFoundry's Agent Gateway. Agents can be prompt-based (backed by a ChatPrompt version) or hosted A2A agents.
+Register an AI agent with TrueFoundry. Agents can be prompt-based (backed by a ChatPrompt version) or hosted A2A agents.
 
 ### Top-level Fields
 
@@ -1223,7 +1223,7 @@ collaborators:
 
 ## MCP Server (Remote)
 
-Register a remote MCP server with TrueFoundry's Agent Gateway for discovery and access control. Connects to an externally hosted MCP server.
+Register a remote MCP server with TrueFoundry for discovery and access control. Connects to an externally hosted MCP server.
 
 ### Top-level Fields
 
@@ -1484,64 +1484,6 @@ members:
 
 ---
 
-## Gateway Guardrails Config
-
-Configure guardrail rules for TrueFoundry's AI Gateway. Rules define when and how guardrails are applied to LLM inputs/outputs and MCP tool invocations.
-
-### Top-level Fields
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `name` | string | Yes | -- | Config name. |
-| `type` | string | Yes | -- | Must be `gateway-guardrails-config` |
-| `gateway_ref` | string | Yes | -- | Reference to the gateway this config applies to. |
-| `rules` | array | Yes | -- | Guardrail rules. See below. |
-
-### Rule
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `id` | string | Yes | -- | Unique rule identifier. |
-| `when` | object | Yes | -- | Conditions for applying this rule. See below. |
-| `llm_input_guardrails` | array | No | -- | Guardrails applied to LLM inputs. |
-| `llm_output_guardrails` | array | No | -- | Guardrails applied to LLM outputs. |
-| `mcp_tool_pre_invoke_guardrails` | array | No | -- | Guardrails applied before MCP tool invocation. |
-| `mcp_tool_post_invoke_guardrails` | array | No | -- | Guardrails applied after MCP tool invocation. |
-
-### When Conditions
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `target_conditions` | array | No | Conditions on the target resource (e.g., agent, model). |
-| `subject_conditions` | array | No | Conditions on the calling subject (e.g., user, team). |
-
-### Example
-
-```yaml
-name: production-guardrails
-type: gateway-guardrails-config
-gateway_ref: "gateway:my-org:prod-gateway"
-rules:
-  - id: pii-detection
-    when:
-      target_conditions:
-        - type: agent
-          names: ["customer-support-agent"]
-      subject_conditions:
-        - type: team
-          names: ["external-users"]
-    llm_input_guardrails:
-      - name: pii-detector
-        config:
-          block_on_detection: true
-    llm_output_guardrails:
-      - name: pii-redactor
-        config:
-          redact: true
-```
-
----
-
 ## Guardrail Config Group (Provider Account)
 
 Register a guardrail integration provider with TrueFoundry. Defines how external guardrail providers are integrated and enforced.
@@ -1604,13 +1546,12 @@ integrations:
 | `volume` | Persistent volume |
 | `application-set` | Multi-resource deployment |
 | `workflow` | Python DAG orchestration (Flyte-based) |
-| `agent` | AI agent registration for Agent Gateway |
+| `agent` | AI agent registration |
 | `mcp-server/remote` | Remote MCP server registration |
 | `mcp-server/virtual` | Virtual MCP server (aggregates multiple servers) |
 | `mcp-server/openapi` | MCP server backed by OpenAPI spec |
 | `role` | Role definition for access control |
 | `team` | Team definition with members |
-| `gateway-guardrails-config` | Guardrail rules for AI Gateway |
 | `provider-account/guardrail-config-group` | Guardrail provider integration |
 
 ### Protocol Values
@@ -1680,5 +1621,5 @@ integrations:
 8. **Scale-to-zero is async-service only** -- Setting `min: 0` on a regular service is not supported.
 9. **Workflow `workspace_fqn` is a CLI flag, not a manifest field** -- Pass it via `--workspace_fqn` on `tfy deploy workflow` or as a sibling key in the REST API.
 10. **Workflow task config lives in Python, not YAML** -- Resources, images, and pip packages for individual tasks are defined in the Python file via `PythonTaskConfig`, not in the deployment manifest.
-11. **MCP server types vs MCP service** -- `mcp-server/remote`, `mcp-server/virtual`, and `mcp-server/openapi` register servers with the Agent Gateway. To actually run an MCP server, deploy it as a `service` type.
+11. **MCP server types vs MCP service** -- `mcp-server/remote`, `mcp-server/virtual`, and `mcp-server/openapi` register MCP servers with TrueFoundry. To actually run an MCP server, deploy it as a `service` type.
 12. **Agent `collaborators` is required** -- Every agent manifest must include at least one collaborator for access control.

@@ -71,10 +71,6 @@ truefoundry-configs/
 │       └── prod-workspace/
 │           ├── my-api-service.yaml
 │           └── my-worker.yaml
-├── gateway/
-│   ├── models.yaml
-│   ├── guardrails.yaml
-│   └── tool-servers.yaml
 ├── integrations/
 │   └── custom-integration.yaml
 ├── teams/
@@ -221,7 +217,7 @@ All providers require `TFY_HOST` and `TFY_API_KEY` as repository secrets/variabl
 ## Step-by-Step: Setting Up GitOps (Summary)
 
 1. **Verify TrueFoundry connection** — Use the `status` skill to confirm credentials
-2. **Create the repo structure** — Set up directories for your resource types (clusters, gateway, etc.)
+2. **Create the repo structure** — Set up directories for your resource types (clusters, teams, etc.)
 3. **Export existing specs** — In the TrueFoundry dashboard, go to each resource -> Edit -> Apply Using YAML. Save each spec as a YAML file in the repo.
 4. **Add CI/CD workflows** — Copy the appropriate workflow files for your CI provider (see above)
 5. **Set repository secrets** — Add `TFY_HOST` and `TFY_API_KEY` as secrets/variables in your CI provider

@@ -137,10 +137,6 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 |--------|------|-------------|
 | GET | `/api/svc/v1/provider-accounts?type=guardrail-config-group` | List guardrail config groups |
 | POST | `/api/svc/v1/provider-accounts` | Create guardrail config group (body: manifest with type provider-account/guardrail-config-group) |
-| GET | `/api/svc/v1/gateway-guardrails-configs` | List gateway guardrails configs (query: gatewayRef) |
-| POST | `/api/svc/v1/gateway-guardrails-configs` | Create gateway guardrails config (body: manifest) |
-| PUT | `/api/svc/v1/gateway-guardrails-configs/{id}` | Update gateway guardrails config (body: manifest) |
-
 ## API Docs
 - Full reference: `https://truefoundry.com/docs/api-reference`
 - Generating API keys: `https://docs.truefoundry.com/docs/generating-truefoundry-api-keys`
