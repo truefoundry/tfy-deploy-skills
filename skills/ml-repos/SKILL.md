@@ -1,5 +1,5 @@
 ---
-name: ml-repos
+name: truefoundry-ml-repos
 description: Browses TrueFoundry ML repositories and model registry. Lists repos, models, and artifacts with FQNs for use in other skills.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

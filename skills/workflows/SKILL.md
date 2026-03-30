@@ -1,5 +1,5 @@
 ---
-name: workflows
+name: truefoundry-workflows
 description: Builds and deploys data processing and ML training pipelines using TrueFoundry Workflows (built on Flyte). Use when creating DAGs, orchestrating multi-step tasks, scheduling ETL pipelines, or running ML training workflows.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

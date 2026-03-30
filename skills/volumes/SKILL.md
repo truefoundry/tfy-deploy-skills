@@ -1,5 +1,5 @@
 ---
-name: volumes
+name: truefoundry-volumes
 description: Creates and manages persistent volumes on TrueFoundry. Handles creation, listing, mounting, storage class selection, and static volume attachment.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

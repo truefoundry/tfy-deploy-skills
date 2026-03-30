@@ -1,5 +1,5 @@
 ---
-name: service-test
+name: truefoundry-service-test
 description: Validates deployed TrueFoundry services with health checks, endpoint smoke tests, and optional load soak tests. Covers REST APIs and web apps.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

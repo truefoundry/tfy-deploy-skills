@@ -1,5 +1,5 @@
 ---
-name: deploy
+name: truefoundry-deploy
 description: Deploys applications to TrueFoundry. Handles single HTTP services, async/queue workers, multi-service projects, and declarative manifest apply. Supports `tfy apply`, `tfy deploy`, docker-compose translation, and CI/CD pipelines. Use when deploying apps, applying manifests, shipping services, or orchestrating multi-service deployments.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

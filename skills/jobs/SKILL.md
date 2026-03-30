@@ -1,5 +1,5 @@
 ---
-name: jobs
+name: truefoundry-jobs
 description: Deploys and monitors TrueFoundry batch jobs, scheduled cron jobs, and one-time tasks. Uses YAML manifests with `tfy apply`. Use when deploying jobs, scheduling cron tasks, checking job run status, or viewing execution history. For listing job applications, use `applications` skill.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

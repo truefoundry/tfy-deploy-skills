@@ -1,5 +1,5 @@
 ---
-name: notebooks
+name: truefoundry-notebooks
 description: Deploys Jupyter notebooks on TrueFoundry infrastructure with optional GPU support. Use when launching JupyterLab environments, setting up ML development workspaces, or running cloud-hosted notebooks for data exploration.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

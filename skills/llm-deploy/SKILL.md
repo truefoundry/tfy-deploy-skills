@@ -1,5 +1,5 @@
 ---
-name: llm-deploy
+name: truefoundry-llm-deploy
 description: Deploys ML and LLM models on TrueFoundry with GPU inference servers (vLLM, TGI, NVIDIA NIM). Uses YAML manifests with `tfy apply`. Use when serving language models, deploying Hugging Face models, or hosting GPU-accelerated inference endpoints.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

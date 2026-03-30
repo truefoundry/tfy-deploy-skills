@@ -1,5 +1,5 @@
 ---
-name: helm
+name: truefoundry-helm
 description: Deploys infrastructure components via Helm charts on TrueFoundry. Supports any public or private OCI Helm chart including databases (Postgres, MongoDB, Redis), message brokers (Kafka, RabbitMQ), and vector databases (Qdrant, Milvus). Uses YAML manifests with `tfy apply`. Use when installing Helm charts or deploying infrastructure on TrueFoundry.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance
