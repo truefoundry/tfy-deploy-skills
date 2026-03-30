@@ -1,4 +1,4 @@
-# Contributing to TrueFoundry Deployment Agent Skills
+# Contributing to TrueFoundry Deploy Skills
 
 Thank you for your interest in contributing! This guide covers how to add new skills, modify existing ones, and submit changes.
 
@@ -6,8 +6,8 @@ Thank you for your interest in contributing! This guide covers how to add new sk
 
 ```bash
 # Clone the repo
-git clone https://github.com/truefoundry/tfy-deployment-agent-skills.git
-cd tfy-deployment-agent-skills
+git clone https://github.com/truefoundry/tfy-deploy-skills.git
+cd tfy-deploy-skills
 
 # Install skills locally
 ./scripts/install.sh
@@ -131,6 +131,6 @@ Before submitting a PR:
 
 ## Questions?
 
-- Open an issue at https://github.com/truefoundry/tfy-deployment-agent-skills/issues
+- Open an issue at https://github.com/truefoundry/tfy-deploy-skills/issues
 - See [AGENTS.md](AGENTS.md) for agent-specific documentation
 - See [SUPPORT.md](SUPPORT.md) for troubleshooting guidance
