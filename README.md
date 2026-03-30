@@ -10,8 +10,10 @@ Works with Claude Code, Cursor, Codex, OpenCode, Windsurf, Cline, and Roo Code.
 ## Install
 
 ```bash
-npx skills add truefoundry/tfy-deploy-skills
+npx skills add truefoundry/tfy-deploy-skills --all
 ```
+
+`--all` installs all skills for all agents without interactive selection prompts.
 
 Or with curl:
 
