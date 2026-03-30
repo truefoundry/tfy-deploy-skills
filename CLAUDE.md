@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
+Repository: `truefoundry/tfy-deploy-skills`
+
 A collection of 21 AI agent skills (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format. Skills let AI assistants deploy, monitor, and manage ML infrastructure on TrueFoundry. This is a content/tooling repo — no application servers, databases, or Docker containers.
+
+Install: `npx @anthropic-ai/skills add truefoundry/tfy-deploy-skills`
 
 ## Commands
 
