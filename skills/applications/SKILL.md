@@ -1,5 +1,5 @@
 ---
-name: applications
+name: truefoundry-applications
 description: Lists, inspects, and manages TrueFoundry application deployments. Shows status, health, and details for services, jobs, and Helm releases. Also handles requests to delete, remove, or destroy applications by directing users to the TrueFoundry UI.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

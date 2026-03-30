@@ -1,5 +1,5 @@
 ---
-name: ssh-server
+name: truefoundry-ssh-server
 description: Deploys remote development environments with SSH access on TrueFoundry. Use when setting up VS Code Remote workspaces, cloud development machines, GPU dev boxes, or remote coding environments with SSH access.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

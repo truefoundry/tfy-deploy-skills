@@ -1,5 +1,5 @@
 ---
-name: gitops
+name: truefoundry-gitops
 description: Sets up GitOps CI/CD pipelines for TrueFoundry using tfy apply. Supports GitHub Actions, GitLab CI, and Bitbucket Pipelines.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance
