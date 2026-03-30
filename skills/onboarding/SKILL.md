@@ -74,7 +74,7 @@ uv run --from truefoundry tfy register
    - **Tenant name** (3-15 chars, lowercase alphanumeric + dashes, e.g., `acme-ai`)
    - **Work email** (company email recommended)
    - **Password** (min 8 characters, confirmed twice)
-   - **Primary use case** — "ai gateway" or "llm ops"
+   - **Primary use case** — "llm ops" or "ml infrastructure"
 
 2. **Confirm terms** — displays links to Privacy Policy and Terms of Service; requires acceptance
 
@@ -181,15 +181,12 @@ After successful setup, guide the user based on what they want to do:
 > - Run a batch job → `jobs` skill
 > - Launch a notebook → `notebooks` skill
 >
-> **AI Gateway**
-> - Configure LLM routing → `ai-gateway` skill
-> - Add safety guardrails → `guardrails` skill
-> - Register MCP servers → `mcp-servers` skill
->
 > **Manage**
 > - List workspaces → `workspaces` skill
 > - View running apps → `applications` skill
 > - Check logs → `logs` skill
+>
+> **Optional add-on:** For AI Gateway features (LLM routing, rate limiting, guardrails), install the gateway skills: `npx skills add truefoundry/tfy-gateway-skills`
 >
 > What would you like to do?
 

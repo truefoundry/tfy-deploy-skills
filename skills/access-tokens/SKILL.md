@@ -1,6 +1,6 @@
 ---
 name: access-tokens
-description: Manages TrueFoundry personal access tokens (PATs). List, create, and delete tokens for API auth, CI/CD, and gateway access.
+description: Manages TrueFoundry personal access tokens (PATs). List, create, and delete tokens for API auth and CI/CD.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance
 allowed-tools: Bash(*/tfy-api.sh *)
@@ -12,11 +12,11 @@ allowed-tools: Bash(*/tfy-api.sh *)
 
 # Access Tokens
 
-Manage TrueFoundry personal access tokens (PATs). List, create, and delete tokens used for API authentication, CI/CD pipelines, and AI Gateway access.
+Manage TrueFoundry personal access tokens (PATs). List, create, and delete tokens used for API authentication and CI/CD pipelines.
 
 ## When to Use
 
-List, create, or delete personal access tokens for API authentication, CI/CD pipelines, or AI Gateway access.
+List, create, or delete personal access tokens for API authentication or CI/CD pipelines.
 
 </objective>
 
@@ -137,7 +137,6 @@ $TFY_API_SH DELETE /api/svc/v1/personal-access-tokens/TOKEN_ID
 
 ## Composability
 
-- **AI Gateway**: PATs are used to authenticate AI Gateway requests (`ai-gateway` skill)
 - **GitOps / CI/CD**: PATs are needed for automated deployments (`gitops` skill, `deploy` skill declarative apply workflow)
 - **Status**: Use `status` skill to verify a PAT is working
 - **Secrets**: Store PATs as secrets for deployments (`secrets` skill)

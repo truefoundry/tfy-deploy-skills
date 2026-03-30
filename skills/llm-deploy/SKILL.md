@@ -341,10 +341,6 @@ Same as the `deploy` skill -- look up cluster base domains and construct the hos
 
 <references>
 
-## AI Gateway Integration
-
-After deploying, you can connect the model to TrueFoundry's AI Gateway for unified API access, rate limiting, cost tracking, and multi-model routing. For setup details, client examples, and GitOps configuration, see [references/llm-gateway-integration.md](references/llm-gateway-integration.md).
-
 ## Composability
 
 - **Find workspace first**: Use `workspaces` skill to get workspace FQN
@@ -354,9 +350,9 @@ After deploying, you can connect the model to TrueFoundry's AI Gateway for unifi
 - **Test after deployment**: Use `service-test` skill to validate the endpoint
 - **View logs**: Use `logs` skill to debug startup issues
 - **Deploy database alongside**: Use `helm` skill for vector DBs, caches, etc.
-- **Connect to AI Gateway**: Add deployed model as a provider in the gateway (see above)
 - **Benchmark performance**: Run load tests against the deployed endpoint to measure throughput/latency
 - **Fine-tune first**: Fine-tune externally and deploy the resulting model artifact with this skill
+- **AI Gateway** (optional): For unified API access, multi-model routing, and rate limiting, install `npx skills add truefoundry/tfy-gateway-skills`
 
 </references>
 

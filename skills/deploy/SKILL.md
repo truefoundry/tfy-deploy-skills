@@ -16,13 +16,9 @@ Route user intent to the right deployment workflow. Load only the references you
 
 ## Intent Router
 
-> **Gateway configs are NOT services.** If the user says "apply" or "deploy" in the context of a gateway YAML (`type: gateway-*`, `type: provider-account/*`), run `tfy apply -f <file>` and test the endpoint. Do not build Docker images, create secrets, or spin up new services.
-
 | User Intent | Action | Reference |
 |---|---|---|
-| "apply gateway config", "apply gateway yaml", "tfy apply gateway", "deploy gateway" | Gateway manifest apply — use `tfy apply -f <file>` directly; do NOT build a service image | Inline: `tfy apply -f gateway.yaml` |
 | "deploy", "deploy my app", "ship this" | Single HTTP service | [deploy-service.md](references/deploy-service.md) |
-| "attach this deployment to mcp gateway", "register deployed mcp service", "connect deployment to mcp gateway" | Post-deploy MCP registration | Use `mcp-servers` skill after deployment endpoint is known |
 | "mount this file", "mount config file", "mount certificate file", "mount key file" | Single service with file mounts (no image rebuild) | [deploy-service.md](references/deploy-service.md) |
 | "tfy apply", "apply manifest", "deploy from yaml" | Declarative manifest apply | [deploy-apply.md](references/deploy-apply.md) |
 | "deploy everything", "full stack", docker-compose, "docker-compose.yaml", "compose.yaml" | Multi-service: use compose as source of truth | [deploy-multi.md](references/deploy-multi.md) + [compose-translation.md](references/compose-translation.md) |
@@ -138,16 +134,6 @@ Always report the observed status (`BUILDING`, `DEPLOYING`, `DEPLOY_SUCCESS`, `D
 
 If status is `DEPLOY_FAILED` or `BUILD_FAILED`, follow [deploy-debugging.md](references/deploy-debugging.md): fetch logs (use `logs` skill), identify cause, apply one fix and retry once; if still failed, report to user with summary and log excerpt and stop.
 
-## Optional Post-Deploy: Attach to MCP Gateway
-
-If the deployed service exposes an MCP endpoint, ask if the user wants to register it in MCP gateway right away.
-
-Handoff checklist to `mcp-servers` skill:
-- deployment/service name
-- endpoint URL (`https://.../mcp` or in-cluster URL)
-- transport (`streamable-http` or `sse`)
-- auth mode (`header`, `oauth2`, or `passthrough`)
-
 ### REST API fallback (when CLI unavailable)
 
 See `references/cli-fallback.md` for converting YAML to JSON and deploying via `tfy-api.sh`.
@@ -238,7 +224,6 @@ These references are available for all workflows — load as needed:
 - **Manage secrets**: Use `secrets` skill
 - **Deploy Helm charts**: Use `helm` skill
 - **Deploy LLMs**: Use `llm-deploy` skill
-- **Register deployment in MCP gateway**: Use `mcp-servers` skill
 - **Test after deploy**: Use `service-test` skill
 
 ## Success Criteria
