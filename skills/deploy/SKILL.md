@@ -125,8 +125,9 @@ Only `dockerfile` and `tfy-python-buildpack` are valid. Do NOT use `docker`, `bu
 If an existing manifest has `build_source.type: git` with a `branch_name` set, compare it to the current local branch before deploying:
 
 ```bash
-# Extract branch_name from manifest
-grep 'branch_name:' truefoundry.yaml tfy-manifest.yaml 2>/dev/null | head -1
+# Use only the specific manifest file for this deployment (not both at once)
+# Use -h to suppress the filename prefix so the bare value can be compared
+grep -h 'branch_name:' "$MANIFEST_FILE" 2>/dev/null | head -1 | sed 's/.*branch_name:[[:space:]]*//'
 
 # Get current local branch
 git branch --show-current 2>/dev/null

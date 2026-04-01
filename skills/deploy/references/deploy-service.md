@@ -64,11 +64,14 @@ git branch --show-current 2>/dev/null
 **If an existing manifest is found**, check whether it uses a git build source with a specific branch:
 
 ```bash
-# Extract branch_name from whichever manifest exists
-grep 'branch_name:' truefoundry.yaml tfy-manifest.yaml 2>/dev/null | head -1
+# Use the specific manifest file detected in step 0b (not both at once)
+# e.g. MANIFEST_FILE=truefoundry.yaml or tfy-manifest.yaml
+
+# Extract only the branch_name value — use -h to suppress filename prefix
+grep -h 'branch_name:' "$MANIFEST_FILE" 2>/dev/null | head -1 | sed 's/.*branch_name:[[:space:]]*//'
 ```
 
-Compare the extracted `branch_name` value against the current local branch from step 0b.
+Compare the extracted `branch_name` value (the bare branch name, e.g. `main`) against the current local branch from step 0b.
 
 **If the manifest's `branch_name` differs from the current local branch, stop and ask:**
 
