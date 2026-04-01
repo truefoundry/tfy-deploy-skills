@@ -25,7 +25,20 @@ python3 -m pip install -U truefoundry "pydantic==2.13.0b1"
 ## Install
 
 ```bash
+npx skills add truefoundry/tfy-deploy-skills -g -a claude,cursor,codex -s '*' -y
+```
+
+This installs all skills globally for Claude Code, Cursor, and Codex. To install for other agents or customize:
+
+```bash
+# All agents
 npx skills add truefoundry/tfy-deploy-skills --all
+
+# Specific agents
+npx skills add truefoundry/tfy-deploy-skills -g -a claude,windsurf -s '*' -y
+
+# Project-local install (instead of global -g)
+npx skills add truefoundry/tfy-deploy-skills -a claude,cursor,codex -s '*' -y
 ```
 
 `--all` installs all skills for all agents without interactive selection prompts.
