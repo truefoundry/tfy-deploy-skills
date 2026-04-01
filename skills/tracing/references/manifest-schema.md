@@ -641,9 +641,11 @@ image:
 | `repo_url` | string | Yes (git) | Git repository URL |
 | `branch_name` | string | No (git) | Branch to build from. Default: current branch (`git branch --show-current`). |
 | `ref` | string | Yes (git) | Git ref (branch name, commit SHA, or tag). Required by `tfy apply` for git build sources. Typically set to the same value as `branch_name`. |
+| `project_root_path` | string | Yes (local) | Path to local project root |
+
+> **IMPORTANT: `build_source.type: local` only works with `tfy deploy -f`.** Using `tfy apply` with a local build source will fail with: `must match exactly one schema in oneOf`. Always use `tfy deploy -f <manifest.yaml>` for local builds.
 
 > **Security:** For `build_source.type: git`, use trusted repositories only and prefer immutable refs (commit SHA or pinned tag) over floating branches.
-| `project_root_path` | string | Yes (local) | Path to local project root |
 
 ### BuildSpec
 
@@ -707,7 +709,7 @@ build_spec:
 | `port` | int | Yes | -- | Container port number |
 | `protocol` | string | No | `TCP` | Protocol: `TCP` or `UDP` |
 | `expose` | bool | No | `false` | Whether to expose externally via ingress |
-| `host` | string | Conditional | -- | Hostname for external access. **Required when `expose: true`**. Must match a cluster-configured domain. Auto-generate as `{service-name}-{workspace-name}.{base_domain}`. |
+| `host` | string | Conditional | -- | Hostname for external access. **Required when `expose: true`** — deploying without it will fail with "Host must be provided to expose port". Must match a cluster-configured base domain. Auto-generate: `{service-name}-{workspace-name}.{base_domain}`. |
 | `app_protocol` | string | No | `http` | Application protocol: `http` or `grpc` |
 
 > **Host generation**: Get base domain from cluster discovery API (`base_domains` array, pick wildcard entry, strip `*.`). Then construct: `{service-name}-{workspace-name}.{base_domain}`. Example: `my-api-dev-ws.ml.your-org.truefoundry.cloud`
@@ -1704,3 +1706,6 @@ integrations:
 10. **Workflow task config lives in Python, not YAML** -- Resources, images, and pip packages for individual tasks are defined in the Python file via `PythonTaskConfig`, not in the deployment manifest.
 11. **MCP server types vs MCP service** -- `mcp-server/remote`, `mcp-server/virtual`, and `mcp-server/openapi` register MCP servers with TrueFoundry. To actually run an MCP server, deploy it as a `service` type.
 12. **Agent `collaborators` is required** -- Every agent manifest must include at least one collaborator for access control.
+13. **`spot_fallback_on_demand` is not universally supported** -- Some clusters reject this capacity type. Use `on_demand` or `spot` instead, or omit `capacity_type` entirely to let the platform choose.
+14. **`tfy apply` does not support local builds** -- `build_source.type: local` only works with `tfy deploy -f`. Using `tfy apply` will fail with a `oneOf` validation error.
+15. **`expose: true` requires `host`** -- Deploying with `expose: true` without a `host` will fail with "Host must be provided to expose port". Always set `host` when `expose: true`. Auto-generate using `{service-name}-{workspace-name}.{base_domain}` from cluster discovery.

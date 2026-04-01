@@ -1,0 +1,23 @@
+type: service
+name: weather-db
+image:
+  type: image
+  image_uri: postgres:16-alpine
+ports:
+  - port: 5432
+    protocol: TCP
+    expose: false
+replicas: 1
+resources:
+  cpu_limit: 0.5
+  cpu_request: 0.25
+  memory_limit: 512
+  memory_request: 256
+  ephemeral_storage_request: 512
+  ephemeral_storage_limit: 1024
+  storage: 5Gi
+env:
+  POSTGRES_DB: "weatherdb"
+  POSTGRES_USER: "weather"
+  POSTGRES_PASSWORD: "changeme"
+workspace_fqn: "tfy-ea-dev-eo-az:sai-ws"

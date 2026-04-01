@@ -112,6 +112,75 @@ Applications in my-cluster:my-workspace:
 | data-pipeline  | job     | STOPPED  | 2026-02-08 09:15   |
 ```
 
+## Deployment Status Monitoring
+
+Use this to check whether a deployment has completed, is still in progress, or has failed.
+
+### Status JSON Paths
+
+When you call `GET /api/svc/v1/apps/APP_ID` or `GET /api/svc/v1/apps?workspaceFqn=...&applicationName=...`, the response is wrapped in `{ data: [...] }`. Each application object contains:
+
+| JSON Path | Description | Example Values |
+|-----------|-------------|----------------|
+| `deployment.currentStatus.status` | Deployment status enum | `DEPLOY_SUCCESS`, `DEPLOY_FAILED`, `BUILD_FAILED`, `BUILDING`, `ROLLOUT_STARTED`, `INITIALIZED` |
+| `deployment.currentStatus.transition` | Current transition activity | `BUILDING`, `DEPLOYING`, `REUSING_EXISTING_BUILD`, `COMPONENTS_DEPLOYING`, `WAITING`, `""` |
+| `deployment.currentStatus.state.display` | Human-friendly state | `Running`, `Failed`, `Building` |
+| `deployment.currentStatus.state.isTerminalState` | Whether deployment is done (most reliable check) | `true` or `false` |
+
+### Status Enum Values (from API)
+
+| Status | Terminal? | Meaning |
+|--------|-----------|---------|
+| `INITIALIZED` | No | Deployment created, waiting for build/rollout to start |
+| `BUILDING` | No | Image build is in progress |
+| `BUILD_SUCCESS` | No | Build completed, deployment starting |
+| `BUILD_FAILED` | Yes | Build failed — check build logs |
+| `ROLLOUT_STARTED` | No | Pods are being created/updated |
+| `DEPLOY_SUCCESS` | Yes | Deployment succeeded and healthy |
+| `DEPLOY_FAILED` | Yes | Deployment failed — check pod logs |
+| `DEPLOY_FAILED_WITH_RETRY` | No | Deploy failed but retrying automatically |
+| `SET_TRAFFIC` | No | Traffic shifting in progress (canary/blue-green) |
+| `PAUSED` | Yes | Application is paused (scaled to zero) |
+| `FAILED` | Yes | General failure |
+| `CANCELLED` | Yes | Deployment was cancelled |
+| `REDEPLOY_STARTED` | No | Redeployment initiated |
+
+### Transition Values
+
+The `transition` field tells you what's happening right now, separate from the status:
+- `BUILDING` — image build in progress
+- `DEPLOYING` — pods being rolled out
+- `REUSING_EXISTING_BUILD` — skipping build, using cached image
+- `COMPONENTS_DEPLOYING` — multi-component app deploying
+- `WAITING` — waiting for resources
+
+> **Best practice:** Use `deployment.currentStatus.state.isTerminalState === true` as the authoritative check for whether polling should stop. Don't rely solely on matching status strings.
+
+### Polling Pattern
+
+```bash
+TFY_API_SH=~/.claude/skills/truefoundry-applications/scripts/tfy-api.sh
+
+# Get app status by name in workspace
+bash $TFY_API_SH GET '/api/svc/v1/apps?workspaceFqn=WORKSPACE_FQN&applicationName=APP_NAME'
+
+# Or by app ID for more detail
+bash $TFY_API_SH GET '/api/svc/v1/apps/APP_ID'
+```
+
+**Poll every 15-30 seconds until `state.isTerminalState` is `true`**, then:
+- If `DEPLOY_SUCCESS` → deployment is healthy
+- If `DEPLOY_FAILED`, `BUILD_FAILED`, or `FAILED` → fetch logs to diagnose (use `logs` skill)
+- If `PAUSED` → application was paused/stopped
+- If `CANCELLED` → deployment was cancelled
+
+### Quick Status Check (one-liner)
+
+```bash
+# Check if deployment is done
+bash $TFY_API_SH GET '/api/svc/v1/apps?workspaceFqn=WORKSPACE_FQN&applicationName=APP_NAME' | python3 -c "import sys,json; d=json.load(sys.stdin); apps=d.get('data',d) if isinstance(d,dict) else d; app=apps[0] if isinstance(apps,list) else apps; ds=app.get('deployment',{}).get('currentStatus',{}); print(f\"Status: {ds.get('status','UNKNOWN')} | Transition: {ds.get('transition','')} | Terminal: {ds.get('state',{}).get('isTerminalState','unknown')} | Display: {ds.get('state',{}).get('display','unknown')}\")"
+```
+
 ## List Deployments
 
 ### Via Tool Call

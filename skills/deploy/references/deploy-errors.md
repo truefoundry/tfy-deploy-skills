@@ -170,6 +170,109 @@ replicas: 2
 Some tfy CLI versions may not accept inline object notation for replicas.
 ```
 
+## "Host must be provided to expose port"
+
+```
+HTTP 400 when deploying a service with expose: true but no host field on the port.
+
+Cause: The TrueFoundry API requires a hostname when a port is externally exposed.
+
+Fix:
+1. Run cluster discovery to get the base domain:
+   GET /api/svc/v1/clusters/CLUSTER_ID → data.manifest.base_domains[]
+2. Pick the wildcard entry (e.g., *.ml.example.truefoundry.cloud), strip "*."
+3. Set host in the port config:
+   host: {service-name}-{workspace-name}.{base_domain}
+
+Prevention: Always run cluster discovery BEFORE generating manifests when
+expose: true is needed. See the deploy skill's pre-flight validation.
+```
+
+## "must have required property 'ephemeral_storage_request'"
+
+```
+Validation error when ephemeral_storage_request or ephemeral_storage_limit
+is missing from the resources section.
+
+Cause: Both fields are REQUIRED for all service, job, and async-service types.
+
+Fix: Add both fields to resources. Safe defaults:
+  ephemeral_storage_request: 1000
+  ephemeral_storage_limit: 2000
+
+Note: These are always required — the API will reject any deployment without them.
+```
+
+## "Helm: must have required property 'source'"
+
+```
+Validation error when using a top-level `chart` key instead of `source` in a Helm manifest.
+
+WRONG:
+  chart:
+    repo: https://charts.bitnami.com/bitnami
+    name: redis
+    version: "19.6.0"
+
+CORRECT:
+  source:
+    type: helm-repo
+    repo_url: https://charts.bitnami.com/bitnami
+    chart: redis
+    version: "19.6.0"
+
+Also valid (OCI):
+  source:
+    type: oci-repo
+    oci_chart_url: oci://registry-1.docker.io/bitnamicharts/redis
+    version: "19.6.0"
+```
+
+## Build Fails with Empty/Tiny Archive (< 1 KB)
+
+```
+tfy deploy uploads source code but the build fails immediately. The archive
+is only 55 bytes or similar tiny size.
+
+Cause: Source files are excluded by .gitignore. tfy deploy respects .gitignore
+when archiving source code.
+
+Diagnosis:
+1. Check tfy deploy output for "Code archive size" — if < 1 KB, files are excluded
+2. Run: git check-ignore -v Dockerfile requirements.txt main.py
+3. Check if a PARENT directory is gitignored (e.g., examples/ in root .gitignore)
+
+Fix:
+- Remove the directory from .gitignore
+- Or move source code outside the gitignored directory
+- Or switch to git-based build_source with a repo URL
+
+CRITICAL: Git rule — once a parent directory is excluded in .gitignore,
+child .gitignore files CANNOT re-include files under it.
+```
+
+## Probe Validation Error: "config must have property 'path'"
+
+```
+Health probe validation fails when using command/exec probe type.
+
+Cause: Some API versions only accept HTTP probes through the service manifest
+path. Command probes may be rejected even though the schema documents them.
+
+Fix:
+- For HTTP services: use HTTP probe (type: http) with path and port
+- For non-HTTP services (databases, caches): use TCP probe (type: tcp) with port
+- Fallback: omit probes entirely (container runs with default liveness)
+
+Example TCP probe for a database:
+  readiness_probe:
+    config:
+      type: tcp
+      port: 5432
+    initial_delay_seconds: 5
+    period_seconds: 10
+```
+
 ## REST API Fallback Errors
 
 ### 401 Unauthorized

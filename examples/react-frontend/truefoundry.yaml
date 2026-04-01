@@ -1,0 +1,26 @@
+type: service
+name: react-frontend-example
+image:
+  type: build
+  build_source:
+    type: local
+  build_spec:
+    type: dockerfile
+    dockerfile_path: Dockerfile
+    build_context: .
+ports:
+  - port: 80
+    host: react-frontend-example.ml.tfy-eo.truefoundry.cloud
+    protocol: TCP
+    expose: true
+replicas: 1
+resources:
+  cpu_limit: 0.3
+  cpu_request: 0.1
+  memory_limit: 256
+  memory_request: 128
+  ephemeral_storage_request: 1000
+  ephemeral_storage_limit: 2000
+env:
+  REACT_APP_API_URL: "https://api.example.com"
+workspace_fqn: "tfy-ea-dev-eo-az:sai-ws"
