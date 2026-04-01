@@ -14,7 +14,7 @@ Install: `npx skills add truefoundry/tfy-deploy-skills --all`
 
 | Task | Command |
 |------|---------|
-| Lint shell scripts | `shellcheck scripts/*.sh hooks/auto-approve-tfy-api.sh skills/_shared/scripts/tfy-api.sh` |
+| Lint shell scripts | `shellcheck scripts/*.sh hooks/auto-approve-tfy-api.sh hooks/post-deploy-monitor.sh skills/_shared/scripts/tfy-api.sh` |
 | Lint skill scripts | `find skills -mindepth 2 -name '*.sh' -print0 \| xargs -0 -r shellcheck` |
 | Validate skills | `./scripts/validate-skills.sh` |
 | Security checks | `./scripts/validate-skill-security.sh` |

@@ -1,5 +1,5 @@
 {
-  "description": "Auto-approve TrueFoundry API calls",
+  "description": "TrueFoundry skill hooks: auto-approve API calls and enforce post-deploy monitoring",
   "hooks": {
     "PreToolUse": [
       {
@@ -8,6 +8,17 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/auto-approve-tfy-api.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-deploy-monitor.sh"
           }
         ]
       }
