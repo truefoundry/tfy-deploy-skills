@@ -49,7 +49,7 @@ AGENTS_GLOBAL=(
 
 # All skill source directories in this repo.
 SKILL_NAMES=(
-  access-control access-tokens docs logs onboarding secrets status
+  access-control access-tokens docs logs monitor onboarding secrets status
   applications deploy gitops helm jobs llm-deploy ml-repos notebooks service-test ssh-server tracing volumes workflows workspaces
 )
 

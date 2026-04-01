@@ -1,0 +1,26 @@
+type: service
+name: fastapi-backend-example
+image:
+  type: build
+  build_source:
+    type: local
+  build_spec:
+    type: dockerfile
+    dockerfile_path: Dockerfile
+    build_context: .
+ports:
+  - port: 8000
+    host: fastapi-backend-example.ml.tfy-eo.truefoundry.cloud
+    protocol: TCP
+    expose: true
+replicas: 1
+resources:
+  cpu_limit: 0.5
+  cpu_request: 0.2
+  memory_limit: 512
+  memory_request: 256
+  ephemeral_storage_request: 1000
+  ephemeral_storage_limit: 2000
+env:
+  APP_ENV: "production"
+workspace_fqn: "tfy-ea-dev-eo-az:sai-ws"

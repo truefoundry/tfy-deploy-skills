@@ -1,0 +1,26 @@
+type: helm
+name: redis-example
+source:
+  type: helm-repo
+  repo_url: https://charts.bitnami.com/bitnami
+  chart: redis
+  version: "19.6.0"
+values:
+  architecture: standalone
+  auth:
+    enabled: true
+    password: "changeme"
+  master:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    persistence:
+      enabled: true
+      size: 5Gi
+  metrics:
+    enabled: false
+workspace_fqn: "tfy-ea-dev-eo-az:sai-ws"

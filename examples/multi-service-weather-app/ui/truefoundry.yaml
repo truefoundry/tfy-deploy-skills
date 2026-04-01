@@ -1,0 +1,26 @@
+type: service
+name: weather-ui
+image:
+  type: build
+  build_source:
+    type: local
+  build_spec:
+    type: dockerfile
+    dockerfile_path: Dockerfile
+    build_context: .
+ports:
+  - port: 80
+    protocol: TCP
+    expose: true
+    host: weather-ui.ml.tfy-eo.truefoundry.cloud
+replicas: 1
+resources:
+  cpu_limit: 0.3
+  cpu_request: 0.1
+  memory_limit: 256
+  memory_request: 128
+  ephemeral_storage_request: 1000
+  ephemeral_storage_limit: 2000
+env:
+  VITE_API_URL: "https://weather-api.ml.tfy-eo.truefoundry.cloud"
+workspace_fqn: "tfy-ea-dev-eo-az:sai-ws"
