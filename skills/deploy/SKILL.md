@@ -30,6 +30,19 @@ Route user intent to the right deployment workflow. Load only the references you
 
 **Load only the reference file matching the user's intent.** Do not preload all references.
 
+## General Principle: Ask, Don't Assume
+
+> **When in doubt, ask.** If any deployment parameter is ambiguous or missing — branch, workspace, image, port, resources, environment — ask the user rather than picking a value and proceeding silently. A wrong assumption can deploy to the wrong environment, from the wrong branch, or with the wrong configuration. The cost of one extra question is always lower than the cost of a bad deploy.
+
+Examples of things to ask rather than assume:
+- Which workspace to deploy to (even if only one exists)
+- Which branch to build from (especially if the manifest branch differs from the local branch)
+- Whether to use the existing manifest as-is or update it
+- Which Docker image tag or registry to use
+- Whether the service should be public or internal
+
+**Do NOT silently default to the current value of anything that could have changed or that the user has not explicitly confirmed for this deployment.**
+
 ## Prerequisites (All Workflows)
 
 ```bash
