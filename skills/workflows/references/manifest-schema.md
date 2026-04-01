@@ -707,16 +707,20 @@ build_spec:
 | `port` | int | Yes | -- | Container port number |
 | `protocol` | string | No | `TCP` | Protocol: `TCP` or `UDP` |
 | `expose` | bool | No | `false` | Whether to expose externally via ingress |
-| `host` | string | Conditional | -- | Hostname for external access. Required when `expose: true`. Must match a cluster-configured domain. |
+| `host` | string | Conditional | -- | Hostname for external access. **Required when `expose: true`**. Must match a cluster-configured domain. Auto-generate as `{service-name}-{workspace-name}.{base_domain}`. |
 | `app_protocol` | string | No | `http` | Application protocol: `http` or `grpc` |
+
+> **Host generation**: Get base domain from cluster discovery API (`base_domains` array, pick wildcard entry, strip `*.`). Then construct: `{service-name}-{workspace-name}.{base_domain}`. Example: `my-api-dev-ws.ml.your-org.truefoundry.cloud`
 
 ```yaml
 ports:
+  # Public access (expose: true requires host)
   - port: 8000
     protocol: TCP
     expose: true
     host: my-api-ws.ml.example.truefoundry.cloud
     app_protocol: http
+  # Internal only (no host needed)
   - port: 50051
     protocol: TCP
     expose: false

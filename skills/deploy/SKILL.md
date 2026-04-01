@@ -91,7 +91,7 @@ image:
   image_uri: docker.io/myorg/my-api:v1.0
 ports:
   - port: 8000
-    expose: true
+    expose: false  # Set true + add host for public access
     app_protocol: http
 resources:
   cpu_request: 0.5
@@ -105,6 +105,18 @@ env:
 replicas: 1
 workspace_fqn: "WORKSPACE_FQN_HERE"
 ```
+
+### Public access template (when expose: true)
+
+```yaml
+ports:
+  - port: 8000
+    expose: true
+    host: my-service-my-workspace.ml.your-org.truefoundry.cloud  # Auto-generate from cluster discovery
+    app_protocol: http
+```
+
+> **Host is REQUIRED when `expose: true`.** Auto-generate it: `{service-name}-{workspace-name}.{base_domain}`. Get `base_domain` from cluster discovery (see `cluster-discovery.md`).
 
 ### Check deployment status
 
