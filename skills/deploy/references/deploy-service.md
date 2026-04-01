@@ -49,6 +49,27 @@ git branch --show-current 2>/dev/null
 
 If `tfy` CLI is not installed: `pip install 'truefoundry==0.5.0'`
 
+### 0c. Source Upload Validation (CRITICAL for `tfy deploy`)
+
+`tfy deploy` respects `.gitignore` when archiving source code. **Before deploying from local source, verify files are NOT gitignored:**
+
+```bash
+# Check if key source files are gitignored
+git check-ignore -v Dockerfile requirements.txt main.py *.py 2>/dev/null
+
+# Check if the source directory itself is gitignored
+git check-ignore -v . 2>/dev/null
+```
+
+**If files ARE gitignored, the upload will be empty and the build will fail silently (55-byte archive).**
+
+Fixes:
+1. Remove the directory from `.gitignore`
+2. Move source code outside the gitignored path
+3. Switch to `build_source.type: git` with a repo URL instead of local
+
+> **Git rule:** Once a parent directory is excluded (e.g., `examples/` in root `.gitignore`), child `.gitignore` files CANNOT re-include files under it. This is a git limitation, not a TrueFoundry limitation.
+
 ### 0c. Ask Workspace (Mandatory)
 
 **Never skip this. Never auto-pick.**

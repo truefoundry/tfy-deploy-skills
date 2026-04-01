@@ -1,5 +1,5 @@
 ---
-name: monitor
+name: truefoundry-monitor
 description: Monitors TrueFoundry deployment rollouts after deploy/apply. Polls status, checks pod health and readiness, fetches logs on failure, and reports a final summary. Use after deploying or applying a manifest to track rollout progress.
 license: MIT
 compatibility: Requires Bash, curl, and access to a TrueFoundry instance

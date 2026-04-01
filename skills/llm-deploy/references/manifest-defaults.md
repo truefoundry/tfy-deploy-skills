@@ -4,6 +4,27 @@ Per-workload-type recommended defaults with "Override When" guidance and complet
 
 See `references/manifest-schema.md` for full field documentation.
 
+## Required Resource Fields (ALL service/job/async-service types)
+
+> **Every deployment MUST include ALL of these resource fields. Omitting any will cause a validation error.**
+
+| Field | Required | Safe Default |
+|-------|----------|-------------|
+| `cpu_request` | **YES** | `0.5` |
+| `cpu_limit` | **YES** | `1.0` |
+| `memory_request` | **YES** | `512` |
+| `memory_limit` | **YES** | `1024` |
+| `ephemeral_storage_request` | **YES** | `1000` |
+| `ephemeral_storage_limit` | **YES** | `2000` |
+
+## Port Host Requirement
+
+If any port has `expose: true`, the `host` field is **REQUIRED**. Templates below use a placeholder — always replace with the actual host from cluster discovery:
+
+```
+host: "${SERVICE_NAME}-${WORKSPACE_NAME}.${BASE_DOMAIN}"
+```
+
 ## Security Defaults (Apply to All Templates)
 
 - Do not place raw credentials (API keys, passwords, tokens) directly in manifests.

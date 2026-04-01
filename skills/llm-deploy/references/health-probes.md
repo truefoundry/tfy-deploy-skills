@@ -1,5 +1,33 @@
 # Health Probes
 
+## Probe Type Compatibility
+
+| Probe Type | Support | When to Use |
+|------------|---------|-------------|
+| **HTTP** (`type: http`) | Fully supported, PREFERRED | Services with HTTP endpoints |
+| **TCP** (`type: tcp`) | Fully supported | Non-HTTP services (databases, caches, gRPC) |
+| **Command** (`type: command`) | Schema supports it, but some API versions may reject it | Avoid — use TCP instead |
+
+> **If command probes fail validation**, fall back to TCP probes on the service port, or omit probes entirely.
+
+### Database / Non-HTTP Service Probes
+
+For containers without HTTP endpoints (Postgres, Redis, MongoDB):
+- **PREFERRED**: TCP probe on the service port
+- **FALLBACK**: Omit probes (container runs with default liveness)
+
+```yaml
+# TCP probe for Postgres
+readiness_probe:
+  config:
+    type: tcp
+    port: 5432
+  initial_delay_seconds: 10
+  period_seconds: 10
+  timeout_seconds: 2
+  failure_threshold: 3
+```
+
 ## Probe Types
 
 | Probe | Purpose | When to Use |

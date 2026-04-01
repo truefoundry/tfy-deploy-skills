@@ -2,6 +2,33 @@
 
 Scan the project to determine framework, app type, and compute indicators before suggesting resources.
 
+## 0. Pre-Flight Checks
+
+### Gitignore Impact (for `tfy deploy` local source)
+
+Before analyzing for deployment, verify source files are NOT gitignored:
+
+```bash
+git check-ignore -v Dockerfile requirements.txt main.py *.py 2>/dev/null
+```
+
+If any critical files are ignored, warn: "`tfy deploy` will exclude these files. The build archive will be empty."
+
+### Frontend Build-Time Env Var Detection
+
+If framework is React/Vite/Next.js/CRA, scan source for build-time env vars:
+
+```bash
+grep -rn 'import\.meta\.env\.\|process\.env\.REACT_APP_\|process\.env\.NEXT_PUBLIC_' src/ --include='*.{js,jsx,ts,tsx}' 2>/dev/null
+```
+
+If found, flag as **BUILD-TIME variables** — these must be set in Dockerfile `ARG`/`ENV` before `npm run build`, NOT in `truefoundry.yaml` `env:`.
+
+Framework-specific prefixes:
+- **Vite**: `VITE_*` (accessed via `import.meta.env.VITE_*`)
+- **Create React App**: `REACT_APP_*` (accessed via `process.env.REACT_APP_*`)
+- **Next.js**: `NEXT_PUBLIC_*` (accessed via `process.env.NEXT_PUBLIC_*`)
+
 ## 1. Framework & Runtime Detection
 
 Look at dependency files and entrypoints:

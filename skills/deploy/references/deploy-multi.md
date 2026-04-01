@@ -173,7 +173,9 @@ Use short names like `myapp-db` (not `myapp-postgresql`) to avoid redundant DNS.
 
 ## Step 4b: MANDATORY — Wire ENV URLs for Every Service
 
-**Before deploying, every service must have env vars that point to its dependencies.** Wrong or missing URLs are the main cause of "multi-service deployment doesn't work."
+> **HARD RULE: NEVER deploy application services until ALL environment variables referencing other services have been translated to correct DNS names. Deploying with placeholder URLs (like `localhost`, `db`, or `example.com`) will succeed but the app will be BROKEN.**
+
+**Before deploying, every service must have env vars that point to its dependencies.** Wrong or missing URLs are the #1 cause of "multi-service deployment doesn't work."
 
 1. **For each application service** in the graph, list its dependencies (from compose `depends_on` or env vars that reference other services).
 2. **For each dependency**, determine:
@@ -182,10 +184,12 @@ Use short names like `myapp-db` (not `myapp-postgresql`) to avoid redundant DNS.
 3. **Set or replace env vars** in that service's manifest:
    - Replace compose hostnames (e.g. `db`, `redis`, `backend`) with the full TFY DNS from `service-wiring.md`.
    - Use `tfy-secret://` for any credential in the connection string; never put raw passwords in the manifest.
-4. **Validation checklist** (from `service-wiring.md`): After writing manifests, verify:
+4. **For frontend services**: Check if backend URLs are referenced via build-time env vars (e.g., `VITE_*`, `REACT_APP_*`, `NEXT_PUBLIC_*`). If so, they MUST be set in the Dockerfile `ARG`/`ENV` before `npm run build`, NOT in `truefoundry.yaml` `env:`. See `service-wiring.md` "Frontend Environment Variables" section.
+5. **Validation checklist** (from `service-wiring.md`): After writing manifests, verify:
    - No env still contains `@db:5432` or `redis:6379` — must be full DNS like `@myapp-db-postgresql.{ns}.svc.cluster.local:5432`
    - Frontend/backend URLs use internal DNS or public URL consistently
    - Passwords are referenced via `tfy-secret://`, not inline
+   - Frontend build-time env vars are in Dockerfile, not manifest env
 
 ## Step 5: Deploy in Graph Order
 
@@ -322,6 +326,46 @@ See `multi-service-patterns.md` for ready-made dependency graphs and deploy orde
 - **AI Agent with tools** (LLM + tool server + DB)
 - **Full-Stack SaaS with AI** (frontend + backend + workers + infra + LLM)
 - **Monorepo support** (detecting structure, shared code, build contexts)
+
+## Database Initialization
+
+When deploying a database container (Postgres, MySQL), the schema must be initialized. Without it, the backend will fail with "table does not exist" errors.
+
+### Options (in order of preference)
+
+**1. Application-managed migrations (RECOMMENDED)**
+
+Have the backend app run migrations on startup. This keeps schema in sync with code:
+
+```python
+# FastAPI example — create tables on startup
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+```
+
+**2. Config map mount for init scripts**
+
+Mount `init.sql` to the database container's init directory:
+
+```yaml
+# For Postgres: mount to /docker-entrypoint-initdb.d/
+mounts:
+  - type: string
+    mount_path: /docker-entrypoint-initdb.d/init.sql
+    data: |
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL
+      );
+```
+
+> Note: Docker entrypoint init scripts only run on first database creation (empty data directory). They won't re-run on container restarts.
+
+**3. Post-deploy job**
+
+Run a one-time job to execute the init script after the database is healthy. Use the `jobs` skill.
 
 ## Error Handling
 

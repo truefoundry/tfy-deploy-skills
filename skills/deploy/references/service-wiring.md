@@ -11,6 +11,19 @@
 - [Secrets for Credentials](#secrets-for-credentials)
 - [Validation Checklist](#validation-checklist)
 
+## Namespace Discovery
+
+The namespace equals the workspace name from the workspace FQN:
+
+```
+Workspace FQN: tfy-ea-dev-eo-az:sai-ws
+                └── cluster ──┘:└ namespace ┘
+```
+
+Extract: `NAMESPACE=$(echo "$TFY_WORKSPACE_FQN" | cut -d: -f2)`
+
+Full DNS example: `myapp-db-postgresql.sai-ws.svc.cluster.local:5432`
+
 ## Translation Rule
 
 In docker-compose, services reference each other by service name:
@@ -142,6 +155,63 @@ Use internal DNS for:
 - Backend-to-cache connections
 - Frontend-to-backend connections (when frontend is server-side rendered)
 - Any inter-service communication within the cluster
+
+## Frontend Environment Variables (CRITICAL)
+
+Frontend frameworks (React/Vite, Next.js, Create React App) **inline env vars at BUILD TIME, not runtime**. Setting them in `truefoundry.yaml` `env:` has **NO EFFECT** on the compiled JavaScript.
+
+### The Problem
+
+```yaml
+# truefoundry.yaml — THIS DOES NOT WORK for frontend env vars
+env:
+  VITE_API_URL: https://myapp-backend-ws.example.com  # ← Nginx sees this, but JS doesn't
+```
+
+The JS bundle was compiled during `npm run build` with whatever env vars were present at that moment. The `truefoundry.yaml` env vars are only available to the container process (e.g., Nginx), not the pre-compiled JS.
+
+### The Fix: Dockerfile ARG/ENV
+
+Set build-time env vars in the Dockerfile BEFORE the build step:
+
+```dockerfile
+FROM node:20 AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# Set build-time env vars HERE
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+```
+
+Then in the TFY manifest, pass the ARG via `build_args`:
+```yaml
+image:
+  type: build
+  build_spec:
+    type: dockerfile
+    build_args:
+      VITE_API_URL: "https://myapp-backend-ws.example.com"
+```
+
+### Framework-Specific Prefixes
+
+| Framework | Prefix | Access Pattern |
+|-----------|--------|----------------|
+| Vite | `VITE_*` | `import.meta.env.VITE_*` |
+| Create React App | `REACT_APP_*` | `process.env.REACT_APP_*` |
+| Next.js (client) | `NEXT_PUBLIC_*` | `process.env.NEXT_PUBLIC_*` |
+
+### Warning: .env and .gitignore
+
+If `.gitignore` excludes `.env` files (common), `tfy deploy` will NOT upload them. Use the Dockerfile ARG approach instead.
 
 ## Secrets for Credentials
 
