@@ -10,7 +10,7 @@ Works with Claude Code, Cursor, Codex, OpenCode, Windsurf, Cline, and Roo Code.
 ## Install
 
 ```bash
-npx skills add truefoundry/tfy-deploy-skills -g -a claude,cursor,codex -s '*' -y
+npx skills add truefoundry/tfy-deploy-skills -g -a claude-code -a cursor -a codex -s '*' -y
 ```
 
 This installs all skills globally for Claude Code, Cursor, and Codex. To install for other agents:
