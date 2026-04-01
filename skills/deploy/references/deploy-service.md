@@ -227,7 +227,7 @@ bash $TFY_API_SH PUT /api/svc/v1/apps '{ "manifest": { ... }, "workspaceId": "WO
 - [ ] **Replicas** — min/max for autoscaling
 - [ ] **Environment variables** — check `.env`, `config.py`, or ask directly
 - [ ] **Health probes** — configure startup/readiness/liveness probes (recommended for production)
-- [ ] **Public URL** — internal-only or public? If public, look up cluster base domains and confirm host
+- [ ] **Public URL** — internal-only or public? If public, auto-generate host from cluster base domain (do NOT ask user for domain separately)
 - [ ] **Secrets** — scan env vars for sensitive values and create TrueFoundry secret groups
 - [ ] **Auto-shutdown** — auto-stop after inactivity? Useful for dev/staging, not recommended for production
 
@@ -304,20 +304,42 @@ For scaling guidelines and rollout options, see `deploy-scaling.md`.
 
 ## Public URL (Exposing a Service)
 
-**Do NOT guess the domain — always look it up.**
+**IMPORTANT: Auto-generate the host — do NOT ask the user to provide it manually.**
 
-1. **Get base domains** — See `cluster-discovery.md`. Pick the wildcard domain, strip `*.`.
-2. **Construct host** — Convention: `{service-name}-{workspace-name}.{base_domain}`
-3. **Confirm with user** — Show the constructed `https://` URL and ask if correct.
-4. **Set in manifest**:
+### Workflow
+
+1. **Ask one question**: "Should this service be publicly accessible, or internal-only?"
+
+2. **If public** — Auto-generate the host (do NOT ask for domain separately):
+   - Fetch base domain from cluster discovery (see `cluster-discovery.md`)
+   - Pick the wildcard entry (e.g., `*.ml.your-org.truefoundry.cloud`), strip `*.`
+   - Construct host: `{service-name}-{workspace-name}.{base_domain}`
+   - Example: service `my-api` in workspace `dev-ws` → `my-api-dev-ws.ml.your-org.truefoundry.cloud`
+
+3. **Show constructed URL for confirmation**:
+   ```
+   Your service will be available at: https://my-api-dev-ws.ml.your-org.truefoundry.cloud
+   Is this correct? (yes/no)
+   ```
+
+4. **Set in manifest** (host field is REQUIRED when expose: true):
    ```yaml
    ports:
      - port: 8000
        expose: true
-       host: my-service-ws.ml.your-org.truefoundry.cloud
+       host: my-api-dev-ws.ml.your-org.truefoundry.cloud
        app_protocol: http
    ```
-5. **Internal-only** — Set `expose: false` and omit `host`.
+
+5. **If internal-only** — Set `expose: false` and omit `host`:
+   ```yaml
+   ports:
+     - port: 8000
+       expose: false
+       app_protocol: http
+   ```
+
+> **Never ask the user for both "host" AND "domain".** Only ask about public vs internal access, then auto-generate the host from cluster discovery.
 
 ## Secrets Handling (Default: Secret Groups)
 

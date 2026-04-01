@@ -139,6 +139,26 @@ payload=$(jq -n \
 $TFY_API_SH PUT /api/svc/v1/secret-groups/GROUP_ID "$payload"
 ```
 
+## List Secret Versions
+
+View the version history of a secret. Useful for auditing changes or rolling back.
+
+### Via Tool Call
+
+```
+tfy_secrets_list_versions(secret_id="SECRET_ID")
+```
+
+### Via Direct API
+
+```bash
+$TFY_API_SH GET /api/svc/v1/secrets/SECRET_ID/versions
+```
+
+**Note:** Version history shows when values were changed but not the actual values (for security).
+
+---
+
 ## Delete Secret Group
 
 ### Via Tool Call

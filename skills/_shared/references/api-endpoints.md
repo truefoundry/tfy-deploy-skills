@@ -11,12 +11,16 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 | GET | `/api/svc/v1/apps/{appId}/deployments` | List deployments for an app |
 | GET | `/api/svc/v1/apps/{appId}/deployments/{deploymentId}` | Get deployment details |
 | PUT | `/api/svc/v1/apps` | Create/update application deployment (body: manifest + options) |
+| POST | `/api/svc/v1/apps/{appId}/sync` | Sync application state with cluster (refreshes status) |
+| POST | `/api/svc/v1/apps/{appId}/deployments/{deploymentId}/promote` | Promote a deployment to active |
+| POST | `/api/svc/v1/apps/{appId}/deployments/{deploymentId}/redeploy` | Redeploy using same configuration |
 
 ## Workspaces
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/svc/v1/workspaces` | List workspaces (query: clusterId, name, fqn) |
 | GET | `/api/svc/v1/workspaces/{id}` | Get workspace by ID |
+| GET | `/api/svc/v1/workspaces/{id}/supported-gpus` | List GPUs supported in this workspace |
 
 ## Clusters
 | Method | Path | Description |
@@ -42,6 +46,7 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 | PUT | `/api/svc/v1/secret-groups/{id}` | Update secret group (body: secrets array with key/value pairs; omitted secrets are deleted) |
 | DELETE | `/api/svc/v1/secret-groups/{id}` | Delete secret group |
 | DELETE | `/api/svc/v1/secrets/{id}` | Delete a secret |
+| GET | `/api/svc/v1/secrets/{id}/versions` | List version history for a secret |
 
 ## Jobs
 | Method | Path | Description |
@@ -137,6 +142,14 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 |--------|------|-------------|
 | GET | `/api/svc/v1/provider-accounts?type=guardrail-config-group` | List guardrail config groups |
 | POST | `/api/svc/v1/provider-accounts` | Create guardrail config group (body: manifest with type provider-account/guardrail-config-group) |
+
+## Addons
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/svc/v1/addon/{addonId}` | Get addon details |
+| POST | `/api/svc/v1/addon-upgrade/{applicationId}` | Upgrade an addon to latest version |
+| GET | `/api/svc/v1/addon/list/components` | List available addon components |
+
 ## API Docs
 - Full reference: `https://truefoundry.com/docs/api-reference`
 - Generating API keys: `https://docs.truefoundry.com/docs/generating-truefoundry-api-keys`

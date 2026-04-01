@@ -246,7 +246,7 @@ Jobs also support `build_source` + `build_spec` for Git-based builds — same fo
 | `port` | int | — | Container port number |
 | `protocol` | string | `"TCP"` | `"TCP"` or `"UDP"` |
 | `expose` | bool | `false` | Whether to expose externally |
-| `host` | string | — | Hostname for external access (required if `expose: true`) |
+| `host` | string | — | Hostname for external access (**required if `expose: true`**). Auto-generate: `{service-name}-{workspace-name}.{base_domain}` |
 | `app_protocol` | string | `"http"` | `"http"` or `"grpc"` |
 
 ### Resources

@@ -130,12 +130,18 @@ When a user needs GPU resources, discover what's available on the cluster before
 
 ### How to Discover
 
-**Option A: Check cluster addons/node pools**
+**Option A: Check workspace-supported GPUs (preferred)**
+```bash
+# Get workspace ID first, then query supported GPUs
+$TFY_API_SH GET /api/svc/v1/workspaces/WORKSPACE_ID/supported-gpus
+```
+
+**Option B: Check cluster addons/node pools**
 ```bash
 $TFY_API_SH GET /api/svc/v1/clusters/CLUSTER_ID/get-addons
 ```
 
-**Option B: The SDK/API error message tells you**
+**Option C: The SDK/API error message tells you**
 
 If you deploy with an unsupported GPU type, the error message lists all valid ones:
 ```
