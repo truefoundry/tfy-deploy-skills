@@ -37,11 +37,11 @@ if ! tfy --version 2>/dev/null; then
   PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "unknown")
 
   if command -v uv &>/dev/null; then
-    uv tool install --python 3.12 truefoundry
+    uv tool install --python 3.12 'truefoundry==0.5.0'
   elif [ "$PY_VERSION" = "3.14" ]; then
-    python3 -m pip install -U truefoundry "pydantic>=2.13.0b1"
+    python3 -m pip install 'truefoundry==0.5.0' "pydantic>=2.13.0b1"
   else
-    python3 -m pip install -U truefoundry
+    python3 -m pip install 'truefoundry==0.5.0'
   fi
   tfy --version || echo "WARNING: tfy install failed. Will use REST API fallback."
 fi

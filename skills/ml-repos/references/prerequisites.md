@@ -13,13 +13,13 @@ if ! tfy --version 2>/dev/null; then
 
   if command -v uv &>/dev/null; then
     # Preferred: use uv with pinned Python 3.12 (avoids pydantic issues)
-    uv tool install --python 3.12 truefoundry
+    uv tool install --python 3.12 'truefoundry==0.5.0'
   elif [ "$PY_VERSION" = "3.14" ]; then
     # Python 3.14 needs pydantic beta workaround
-    python3 -m pip install -U truefoundry "pydantic>=2.13.0b1"
+    python3 -m pip install 'truefoundry==0.5.0' "pydantic>=2.13.0b1"
   else
     # Standard pip install for Python 3.9-3.13
-    python3 -m pip install -U truefoundry
+    python3 -m pip install 'truefoundry==0.5.0'
   fi
 
   # Verify installation
