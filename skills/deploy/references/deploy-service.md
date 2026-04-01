@@ -28,11 +28,23 @@ If `TFY_BASE_URL` is present but `TFY_HOST` is missing, set it before running CL
 [ -n "${TFY_BASE_URL:-}" ] && export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
 ```
 
-### 0b. Detect Tools
+### 0b. Detect Tools & Auto-Install CLI
 
 ```bash
-# Check for CLI
-tfy --version 2>/dev/null
+# Check for CLI — auto-install if missing
+if ! tfy --version 2>/dev/null; then
+  echo "tfy CLI not found. Installing..."
+  PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "unknown")
+
+  if command -v uv &>/dev/null; then
+    uv tool install --python 3.12 truefoundry
+  elif [ "$PY_VERSION" = "3.14" ]; then
+    python3 -m pip install -U truefoundry "pydantic>=2.13.0b1"
+  else
+    python3 -m pip install -U truefoundry
+  fi
+  tfy --version || echo "WARNING: tfy install failed. Will use REST API fallback."
+fi
 
 # Check for Git repo
 git remote -v 2>/dev/null
@@ -46,8 +58,6 @@ docker --version 2>/dev/null
 # Get current branch
 git branch --show-current 2>/dev/null
 ```
-
-If `tfy` CLI is not installed: `pip install 'truefoundry==0.5.0'`
 
 ### 0c. Source Upload Validation (CRITICAL for `tfy deploy`)
 

@@ -1,23 +1,36 @@
 # Prerequisites
 
-## Step 0: CLI Check
+## Step 0: CLI Check & Auto-Install
 
-Check if the TrueFoundry CLI is available:
+Check if the TrueFoundry CLI is available. **If missing, install it automatically — do not ask the user to install it manually.**
 
 ```bash
-tfy --version 2>/dev/null
+if ! tfy --version 2>/dev/null; then
+  echo "tfy CLI not found. Installing..."
+
+  # Detect Python version
+  PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "unknown")
+
+  if command -v uv &>/dev/null; then
+    # Preferred: use uv with pinned Python 3.12 (avoids pydantic issues)
+    uv tool install --python 3.12 truefoundry
+  elif [ "$PY_VERSION" = "3.14" ]; then
+    # Python 3.14 needs pydantic beta workaround
+    python3 -m pip install -U truefoundry "pydantic>=2.13.0b1"
+  else
+    # Standard pip install for Python 3.9-3.13
+    python3 -m pip install -U truefoundry
+  fi
+
+  # Verify installation
+  tfy --version || echo "WARNING: tfy CLI installation failed. Skills will fall back to REST API."
+fi
 ```
 
 If `TFY_API_KEY` is set and you use `tfy` CLI commands (`tfy apply`, `tfy deploy`), ensure `TFY_HOST` is set:
 
 ```bash
 export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
-```
-
-If not found, install it:
-
-```bash
-pip install 'truefoundry==0.5.0'
 ```
 
 > **Note:** The CLI (`tfy apply`) is the recommended deployment method, but it is not strictly required. All skills fall back to the REST API via `tfy-api.sh` when the CLI is unavailable.
@@ -46,9 +59,9 @@ echo "TFY_WORKSPACE_FQN: ${TFY_WORKSPACE_FQN:-(not set)}"
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TFY_BASE_URL` | Yes | TrueFoundry platform URL (e.g., `https://your-org.truefoundry.cloud`) |
-| `TFY_HOST` | For CLI auth/deploy with API key | CLI host URL (usually same as `TFY_BASE_URL`, no trailing slash) |
+| `TFY_HOST` | Auto-derived | CLI host URL. Auto-set from `TFY_BASE_URL` if not provided. |
 | `TFY_API_KEY` | Yes | API key for authentication |
-| `TFY_WORKSPACE_FQN` | For deploys | Workspace fully qualified name (e.g., `cluster-id:workspace-name`) |
+| `TFY_WORKSPACE_FQN` | No (skills ask) | Workspace FQN. If not set, skills list available workspaces and ask the user to select one. |
 
 ### Variable Name Aliases
 
