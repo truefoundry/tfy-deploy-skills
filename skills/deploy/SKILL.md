@@ -107,6 +107,27 @@ If the manifest contains `build_source.type: local`, ensure the deploy command i
 
 Only `dockerfile` and `tfy-python-buildpack` are valid. Do NOT use `docker`, `build`, `python`, or any other value.
 
+### 5. Git branch mismatch (existing manifest + git source)
+
+If an existing manifest has `build_source.type: git` with a `branch_name` set, compare it to the current local branch before deploying:
+
+```bash
+# Extract branch_name from manifest
+grep 'branch_name:' truefoundry.yaml tfy-manifest.yaml 2>/dev/null | head -1
+
+# Get current local branch
+git branch --show-current 2>/dev/null
+```
+
+**If the branches differ, stop and ask the user:**
+
+> The manifest specifies `branch_name: {manifest_branch}`, but your current local branch is `{current_branch}`.
+> Which branch should be deployed?
+> 1. Keep manifest branch: `{manifest_branch}` (deploy as-is, no manifest change)
+> 2. Use current branch: `{current_branch}` (update `branch_name` in the manifest)
+
+**Never silently override the manifest's `branch_name` with the current local branch.**
+
 ## Quick Ops (Inline)
 
 ### Apply a manifest (pre-built image or git source)
