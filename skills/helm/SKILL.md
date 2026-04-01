@@ -261,6 +261,34 @@ Next steps:
 4. Store credentials: Use TrueFoundry secrets for app access
 ```
 
+## Addon Operations
+
+TrueFoundry treats Helm deployments as "addons" and provides additional management endpoints.
+
+### Get Addon Details
+
+```bash
+# Get details about a deployed addon/Helm release
+$TFY_API_SH GET /api/svc/v1/addon/ADDON_ID
+```
+
+### Upgrade Addon
+
+Upgrade an addon to the latest chart version:
+
+```bash
+# Upgrade to latest version
+$TFY_API_SH POST /api/svc/v1/addon-upgrade/APPLICATION_ID
+```
+
+### List Available Addon Components
+
+See what addon types are available:
+
+```bash
+$TFY_API_SH GET /api/svc/v1/addon/list/components
+```
+
 </instructions>
 
 <success_criteria>

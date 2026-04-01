@@ -1225,6 +1225,83 @@ collaborators:
 
 ---
 
+## Chat Prompt
+
+Create AI prompts with model configuration, tools, guardrails, and MCP server integrations.
+
+### Top-level Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | -- | Prompt name. |
+| `type` | string | Yes | -- | Must be `chat_prompt` |
+| `messages` | array | Yes | -- | List of message turns in the conversation. See [Chat Messages](#chat-messages). |
+| `variables` | object | No | -- | Variables that can be substituted in messages at runtime. |
+| `model_configuration` | object | No | -- | Model settings (temperature, max_tokens, etc.). See [Model Configuration](#model-configuration). |
+| `tools` | array | No | -- | Tool schemas the model can call. |
+| `mcp_servers` | array | No | -- | MCP server references (by FQN or URL). |
+| `guardrails` | object | No | -- | Input/output guardrail configuration. |
+| `response_format` | object | No | -- | Structured output format (JSON schema). |
+| `routing_config` | object | No | -- | Load balancing across model targets. |
+| `cache_config` | object | No | -- | Semantic or exact-match caching. |
+
+### Chat Messages
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `role` | string | Yes | `system`, `user`, or `assistant` |
+| `content` | string | Yes | Message content. Can include `{{variable}}` placeholders. |
+
+### Model Configuration
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model identifier (e.g., `gpt-4`, `claude-3-opus`) |
+| `temperature` | float | No | Sampling temperature (0-2). |
+| `max_tokens` | int | No | Maximum tokens in response. |
+| `top_p` | float | No | Nucleus sampling parameter. |
+| `stop` | array | No | Stop sequences. |
+
+### Example
+
+```yaml
+name: support-prompt
+type: chat_prompt
+messages:
+  - role: system
+    content: "You are a helpful customer support agent for {{company_name}}."
+  - role: user
+    content: "{{user_question}}"
+variables:
+  company_name: "Acme Corp"
+  user_question: ""
+model_configuration:
+  model: gpt-4
+  temperature: 0.7
+  max_tokens: 1024
+tools:
+  - name: search_docs
+    description: Search the documentation
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Search query
+      required: ["query"]
+guardrails:
+  input:
+    - type: pii_detection
+      action: block
+  output:
+    - type: content_moderation
+      action: warn
+```
+
+> **Versioning:** Chat prompts are versioned. Reference specific versions in agents using `prompt_version_fqn` (e.g., `prompt:my-org:support-prompt:3`).
+
+---
+
 ## MCP Server (Remote)
 
 Register a remote MCP server with TrueFoundry for discovery and access control. Connects to an externally hosted MCP server.

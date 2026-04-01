@@ -131,6 +131,56 @@ $TFY_API_SH GET /api/svc/v1/apps/APP_ID/deployments
 $TFY_API_SH GET /api/svc/v1/apps/APP_ID/deployments/DEPLOYMENT_ID
 ```
 
+## Sync Application
+
+Refresh application state from the cluster. Useful when the UI or API shows stale status.
+
+### Via Tool Call
+
+```
+tfy_applications_sync(app_id="app-id")
+```
+
+### Via Direct API
+
+```bash
+$TFY_API_SH POST /api/svc/v1/apps/APP_ID/sync
+```
+
+## Promote Deployment
+
+Promote a specific deployment to be the active deployment.
+
+### Via Tool Call
+
+```
+tfy_applications_promote(app_id="app-id", deployment_id="deployment-id")
+```
+
+### Via Direct API
+
+```bash
+$TFY_API_SH POST /api/svc/v1/apps/APP_ID/deployments/DEPLOYMENT_ID/promote
+```
+
+## Redeploy
+
+Redeploy an application using the same configuration as an existing deployment. Useful for restarting pods or recovering from transient failures.
+
+### Via Tool Call
+
+```
+tfy_applications_redeploy(app_id="app-id", deployment_id="deployment-id")
+```
+
+### Via Direct API
+
+```bash
+$TFY_API_SH POST /api/svc/v1/apps/APP_ID/deployments/DEPLOYMENT_ID/redeploy
+```
+
+---
+
 ## Create Deployment (API)
 
 For creating a deployment via API manifest (advanced — most users should use the `deploy` skill).
