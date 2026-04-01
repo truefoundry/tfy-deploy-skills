@@ -309,107 +309,23 @@ See `references/cli-fallback.md` for converting YAML to JSON and deploying via `
 
 ## Multi-Service Deployment Order (MANDATORY)
 
-> **HARD RULE: When deploying multiple services, you MUST deploy in dependency order, create secrets between tiers, and wire services before deploying dependents. Never deploy all services at once — deploy tier by tier, verify each tier, then proceed.**
+> **HARD RULE: When deploying multiple services, you MUST deploy in dependency order, create secrets between tiers, and wire services before deploying dependents. Never deploy all services at once.**
 
-### The Tier-by-Tier Flow
-
-For any multi-service project, follow this exact sequence:
+**Tier-by-tier flow:**
 
 ```
-TIER 0: Infrastructure (DB, Cache, Queue, Vector DB)
-  ↓ deploy → wait for pods ready → create secrets with credentials
-TIER 1: Backend services (APIs, workers)
-  ↓ deploy with secrets + DNS wiring → wait for healthy → verify connectivity
-TIER 2: Frontend / gateway services
-  ↓ deploy with backend URLs → wait for healthy → verify end-to-end
+TIER 0: Infrastructure (DB, Cache, Queue) → deploy → wait for pods ready → create TFY secrets
+TIER 1: Backend (APIs, workers) → deploy with secrets + DNS wiring → verify connectivity
+TIER 2: Frontend / gateway → deploy with backend URLs → verify end-to-end
 ```
 
-### Step-by-Step Orchestration
+**Key rules:**
+- Create TFY secret groups with infra credentials **between Tier 0 and Tier 1** — never put raw passwords in manifests
+- SPA frontends (React, Vue) MUST use backend's **public URL**, not internal DNS
+- `DEPLOY_SUCCESS` does NOT mean Helm pods are ready — poll actual readiness
+- Present the dependency graph and deploy plan to the user before deploying
 
-**1. Build the dependency graph** — Classify services and compute topological sort (see `deploy-multi.md` Step 2). Present the plan to the user and get confirmation before deploying anything.
-
-**2. Deploy Tier 0: Infrastructure**
-
-Deploy databases, caches, and queues first (as Helm charts). These have no dependencies.
-
-```
-Deploy: db, redis, rabbitmq (can be parallel)
-Wait:   Poll until pods are actually ready (DEPLOY_SUCCESS alone is not enough for Helm charts)
-```
-
-> **CRITICAL:** After infra is deployed and healthy, **create a TFY secret group** containing all infrastructure credentials (DB passwords, Redis passwords, etc.) BEFORE deploying anything that depends on them.
-
-```bash
-# Example: create secrets for the DB and cache credentials
-# Use the `secrets` skill to create a group like "myapp-infra-secrets"
-# with keys: DB_PASSWORD, REDIS_PASSWORD, etc.
-```
-
-**3. Deploy Tier 1: Backend services**
-
-Now deploy backends/workers that depend on infrastructure. Their manifests MUST reference:
-- Infrastructure via Kubernetes DNS (e.g., `myapp-db-postgresql.{ns}.svc.cluster.local:5432`)
-- Credentials via `tfy-secret://` references to the secret group created in step 2
-
-```yaml
-# Backend manifest env example — DNS + secrets are pre-wired
-env:
-  DATABASE_URL: postgresql://postgres:tfy-secret://my-org:myapp-infra-secrets:DB_PASSWORD@myapp-db-postgresql.NAMESPACE.svc.cluster.local:5432/myapp
-  REDIS_URL: redis://:tfy-secret://my-org:myapp-infra-secrets:REDIS_PASSWORD@myapp-cache-redis-master.NAMESPACE.svc.cluster.local:6379/0
-```
-
-```
-Deploy: backend, worker (can be parallel if no inter-dependency)
-Wait:   Monitor each to DEPLOY_SUCCESS
-Verify: Check logs for connection errors (Connection refused, Auth failed)
-```
-
-**4. Deploy Tier 2: Frontend / gateway**
-
-Deploy frontends last. Wire them to backend services using internal DNS or public URLs.
-
-```yaml
-# Frontend manifest env example — points to backend
-env:
-  API_URL: http://myapp-backend.NAMESPACE.svc.cluster.local:8000
-  # OR public URL if frontend runs in-browser (SPA):
-  VITE_API_URL: https://myapp-backend-ws.BASE_DOMAIN
-```
-
-> **SPA frontends (React, Vue, etc.) run in the browser, NOT in the cluster.** They CANNOT use internal DNS. They MUST use the backend's **public URL**. Server-rendered apps (Next.js SSR, Django templates) CAN use internal DNS.
-
-```
-Deploy: frontend
-Wait:   Monitor to DEPLOY_SUCCESS
-Verify: curl the frontend URL, check it can reach the backend
-```
-
-**5. Final verification and summary**
-
-After all tiers are deployed:
-- Check logs across all services for connection errors
-- Hit the frontend URL to verify the full stack works
-- Present the deployment summary with all URLs and wiring map
-
-### Common Deployment Orders
-
-| Project Type | Tier 0 (Infra) | Tier 1 (Backend) | Tier 2 (Frontend) |
-|-------------|----------------|-------------------|--------------------|
-| **Full-stack web app** | PostgreSQL | Backend API | React/Vue frontend |
-| **Backend + DB** | PostgreSQL, Redis | Backend API, Worker | — |
-| **RAG application** | Vector DB, PostgreSQL | RAG API, LLM service | Chat frontend |
-| **Microservices** | PostgreSQL, Redis, RabbitMQ | Service A, Service B, Worker | API Gateway, Frontend |
-| **AI Agent** | PostgreSQL | Agent API, Tool server, LLM | Agent UI |
-
-### What NOT to Do
-
-- **Do NOT deploy all services at once** — dependents will fail if their dependencies aren't ready
-- **Do NOT put raw passwords in manifests** — always create TFY secrets first, then reference them
-- **Do NOT skip DNS wiring** — a backend pointing to `localhost:5432` instead of the Helm DNS will fail
-- **Do NOT deploy frontend before backend** — even if frontend deploys successfully, it won't work
-- **Do NOT assume DEPLOY_SUCCESS means ready** — Helm chart pods (DB, Redis) may still be initializing
-
-For the full reference on dependency graphs, DNS patterns, and wiring algorithms, see [deploy-multi.md](references/deploy-multi.md), [service-wiring.md](references/service-wiring.md), and [dependency-graph.md](references/dependency-graph.md).
+For step-by-step orchestration, examples, and common patterns, see [deploy-ordering.md](references/deploy-ordering.md). For dependency graphs, DNS wiring, and compose translation, see [deploy-multi.md](references/deploy-multi.md), [service-wiring.md](references/service-wiring.md), and [dependency-graph.md](references/dependency-graph.md).
 
 ## Secrets Handling (MANDATORY: Always Use TFY Secrets)
 
@@ -479,6 +395,7 @@ These references are available for all workflows — load as needed:
 | `codebase-analysis.md` | deploy-service |
 | `tfy-apply-cicd.md` | deploy-apply |
 | `tfy-apply-extra-manifests.md` | deploy-apply |
+| `deploy-ordering.md` | deploy-multi (tier-by-tier orchestration) |
 | `compose-translation.md` | deploy-multi |
 | `dependency-graph.md` | deploy-multi |
 | `multi-service-errors.md` | deploy-multi |
