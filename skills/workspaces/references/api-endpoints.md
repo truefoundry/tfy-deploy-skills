@@ -143,18 +143,6 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 | GET | `/api/svc/v1/provider-accounts?type=guardrail-config-group` | List guardrail config groups |
 | POST | `/api/svc/v1/provider-accounts` | Create guardrail config group (body: manifest with type provider-account/guardrail-config-group) |
 
-## Agents
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/svc/v1/agents` | List AI agents (query: name, workspaceFqn) |
-| POST | `/api/svc/v1/agents` | Create an AI agent (body: AgentManifest) |
-| PUT | `/api/svc/v1/agents` | Update an AI agent (body: AgentManifest) |
-| DELETE | `/api/svc/v1/agents/{id}` | Delete an AI agent |
-| GET | `/api/svc/v1/agent-apps` | List agent applications |
-| PUT | `/api/svc/v1/agent-apps` | Update an agent application |
-| DELETE | `/api/svc/v1/agent-apps/{id}` | Delete an agent application |
-| GET | `/api/svc/v1/agent-versions` | List agent versions (query: agentId) |
-
 ## Addons
 | Method | Path | Description |
 |--------|------|-------------|
