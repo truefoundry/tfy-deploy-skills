@@ -1,0 +1,21 @@
+{
+  "name": "truefoundry",
+  "owner": {
+    "name": "TrueFoundry",
+    "email": "support@truefoundry.com"
+  },
+  "metadata": {
+    "description": "TrueFoundry deployment and ML infrastructure management plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "truefoundry",
+      "source": "./",
+      "description": "Deploy, monitor, and manage ML infrastructure on TrueFoundry with enforced workflows, automatic health verification, and failure diagnosis.",
+      "version": "1.0.0",
+      "author": {
+        "name": "TrueFoundry"
+      }
+    }
+  ]
+}
