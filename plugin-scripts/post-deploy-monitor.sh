@@ -116,7 +116,8 @@ if [[ "$is_llm_deploy" = "false" && -n "${manifest_file:-}" && -f "${manifest_fi
 fi
 
 # --- Record this deployment for the stop hook ---
-STATE_DIR=$(cat "${TMPDIR:-/tmp}/tfy-plugin-state-dir" 2>/dev/null || echo "")
+SESSION_KEY="${CLAUDE_SESSION_ID:-${PPID:-$$}}"
+STATE_DIR=$(cat "${TMPDIR:-/tmp}/tfy-plugin-state-${SESSION_KEY}" 2>/dev/null || echo "")
 if [[ -n "$STATE_DIR" && -d "$STATE_DIR" ]]; then
   echo "{\"app\":\"$app_name\",\"workspace\":\"$workspace_fqn\",\"ts\":$(date +%s)}" >> "$STATE_DIR/deployments.jsonl"
 fi
@@ -129,8 +130,9 @@ if [[ "$is_llm_deploy" = "true" ]]; then
 fi
 echo ""
 
-encoded_ws=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$workspace_fqn', safe=''))" 2>/dev/null || echo "$workspace_fqn")
-encoded_app=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$app_name', safe=''))" 2>/dev/null || echo "$app_name")
+# URL-encode via stdin to avoid shell quoting issues with special chars in names
+encoded_ws=$(printf '%s' "$workspace_fqn" | python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.stdin.read(), safe=''))" 2>/dev/null || echo "$workspace_fqn")
+encoded_app=$(printf '%s' "$app_name" | python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.stdin.read(), safe=''))" 2>/dev/null || echo "$app_name")
 
 poll_count=0
 if [[ "$is_llm_deploy" = "true" ]]; then
@@ -284,7 +286,7 @@ elif [[ "$final_status" =~ ^(BUILD_FAILED|DEPLOY_FAILED|FAILED|CANCELLED)$ ]]; t
     if [[ -n "$ws_id" && -n "$app_fqn" ]]; then
       end_ts=$(date +%s)000
       start_ts=$(( end_ts - 300000 ))  # last 5 minutes
-      encoded_fqn=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$app_fqn', safe=''))" 2>/dev/null || echo "$app_fqn")
+      encoded_fqn=$(printf '%s' "$app_fqn" | python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.stdin.read(), safe=''))" 2>/dev/null || echo "$app_fqn")
       logs=$(curl -sf \
         --connect-timeout 5 --max-time 15 \
         -H "Authorization: Bearer ${TFY_API_KEY}" \

@@ -50,7 +50,7 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/plugin-scripts/post-deploy-monitor.sh\"",
-            "timeout": 900
+            "timeout": 1800
           }
         ]
       }

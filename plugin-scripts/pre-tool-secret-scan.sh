@@ -54,5 +54,5 @@ if $blocked; then
   exit 1
 fi
 
-# No secrets detected
-exit 0
+# No secrets detected — defer to other hooks (exit 2 = no opinion)
+exit 2

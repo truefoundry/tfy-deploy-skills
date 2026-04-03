@@ -31,7 +31,7 @@ fi
 
 # --- Pattern 2: curl ... -X DELETE ... or curl ... --request DELETE ... ---
 if [[ "$COMMAND" =~ curl[[:space:]] ]]; then
-  if [[ "$COMMAND" =~ -X[[:space:]]+DELETE ]] || [[ "$COMMAND" =~ --request[[:space:]]+DELETE ]]; then
+  if [[ "$COMMAND" =~ -X[[:space:]]*DELETE ]] || [[ "$COMMAND" =~ -XDELETE ]] || [[ "$COMMAND" =~ --request[[:space:]]+DELETE ]]; then
     BLOCKED=true
     # Try to extract the URL for a friendlier message
     url=$(echo "$COMMAND" | grep -oE 'https?://[^[:space:]"'"'"']+' | head -1)

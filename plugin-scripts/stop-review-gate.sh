@@ -8,7 +8,8 @@
 set -euo pipefail
 
 # --- Check if any deploys happened this session ---
-STATE_DIR=$(cat "${TMPDIR:-/tmp}/tfy-plugin-state-dir" 2>/dev/null || echo "")
+SESSION_KEY="${CLAUDE_SESSION_ID:-${PPID:-$$}}"
+STATE_DIR=$(cat "${TMPDIR:-/tmp}/tfy-plugin-state-${SESSION_KEY}" 2>/dev/null || echo "")
 
 if [[ -z "$STATE_DIR" || ! -d "$STATE_DIR" ]]; then
   # No session state — no deploys to verify
