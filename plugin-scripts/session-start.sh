@@ -198,11 +198,19 @@ except Exception:
 fi
 
 # --- Write session state for other hooks ---
+# Clean up stale state directories from previous sessions
+find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'tfy-plugin-*' -type d -mmin +120 -exec rm -rf {} + 2>/dev/null || true
+
 STATE_DIR="${TMPDIR:-/tmp}/tfy-plugin-$$"
-mkdir -p "$STATE_DIR"
-echo "$STATE_DIR" > "${TMPDIR:-/tmp}/tfy-plugin-state-dir"
-# Track deployments in this session (used by stop hook)
-: > "$STATE_DIR/deployments.jsonl"
+if ! mkdir -p "$STATE_DIR" 2>/dev/null; then
+  echo "WARNING: Could not create state directory. Deploy monitoring hooks may not work."
+  STATE_DIR=""
+fi
+if [[ -n "$STATE_DIR" ]]; then
+  echo "$STATE_DIR" > "${TMPDIR:-/tmp}/tfy-plugin-state-dir"
+  # Track deployments in this session (used by stop hook)
+  : > "$STATE_DIR/deployments.jsonl"
+fi
 
 # --- Output summary ---
 # This output feeds back into the conversation context.

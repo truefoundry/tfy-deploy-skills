@@ -21,7 +21,7 @@ Determine what failed:
 - When the failure happened
 
 ```bash
-TFY_API_SH=~/.claude/skills/truefoundry-monitor/scripts/tfy-api.sh
+TFY_API_SH="${CLAUDE_PLUGIN_ROOT:-~/.claude/skills/truefoundry-monitor}/scripts/tfy-api.sh"
 bash $TFY_API_SH GET '/api/svc/v1/apps?workspaceFqn=WORKSPACE_FQN&applicationName=APP_NAME'
 ```
 

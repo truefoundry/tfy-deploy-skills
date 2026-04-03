@@ -53,9 +53,16 @@ fi
 
 if [[ "$BLOCKED" == "true" ]]; then
   dashboard_url="${TFY_BASE_URL:-https://app.truefoundry.com}"
-  cat <<EOF
-{"decision":"block","reason":"Delete operations are not supported via this plugin. To delete $RESOURCE, go to your TrueFoundry dashboard at $dashboard_url and navigate to the resource you want to delete."}
-EOF
+  # Use jq to safely construct JSON (avoids injection from $RESOURCE)
+  if command -v jq &>/dev/null; then
+    jq -n --arg res "$RESOURCE" --arg url "$dashboard_url" \
+      '{"decision":"block","reason":"Delete operations are not supported via this plugin. To delete \($res), go to your TrueFoundry dashboard at \($url) and navigate to the resource you want to delete."}'
+  else
+    # Fallback: sanitize by removing quotes from variables
+    safe_resource="${RESOURCE//\"/}"
+    safe_url="${dashboard_url//\"/}"
+    echo "{\"decision\":\"block\",\"reason\":\"Delete operations are not supported via this plugin. To delete ${safe_resource}, go to your TrueFoundry dashboard at ${safe_url} and navigate to the resource you want to delete.\"}"
+  fi
   exit 1
 fi
 

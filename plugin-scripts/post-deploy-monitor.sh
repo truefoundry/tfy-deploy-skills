@@ -38,12 +38,12 @@ elif [[ "$COMMAND" =~ tfy[[:space:]]+(apply|deploy)([[:space:]]|$) ]]; then
   done
 elif [[ "$COMMAND" =~ tfy-api\.sh[[:space:]]+PUT[[:space:]]+.*/api/svc/v1/apps ]]; then
   is_deploy=true
-  # Extract name from JSON body in the command
-  app_name=$(echo "$COMMAND" | grep -oP '"name"\s*:\s*"\K[^"]+' 2>/dev/null | head -1 || true)
+  # Extract name from JSON body in the command (macOS-compatible, no grep -P)
+  app_name=$(echo "$COMMAND" | grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]+"' 2>/dev/null | head -1 | sed 's/.*"name"[[:space:]]*:[[:space:]]*"//;s/"//' || true)
 elif [[ "$COMMAND" =~ curl[[:space:]].*(/api/svc/v1/apps|/api/svc/v1/application) ]]; then
   # REST API deploys via curl
   is_deploy=true
-  app_name=$(echo "$COMMAND" | grep -oP '"name"\s*:\s*"\K[^"]+' 2>/dev/null | head -1 || true)
+  app_name=$(echo "$COMMAND" | grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]+"' 2>/dev/null | head -1 | sed 's/.*"name"[[:space:]]*:[[:space:]]*"//;s/"//' || true)
 elif [[ "$COMMAND" =~ \|[[:space:]]*tfy[[:space:]]+(apply|deploy) ]]; then
   # tfy apply/deploy with piped input (e.g., cat manifest.yaml | tfy apply)
   is_deploy=true
@@ -85,8 +85,16 @@ if [[ -z "$TFY_BASE_URL" || -z "${TFY_API_KEY:-}" ]]; then
   exit 0
 fi
 
-if [[ -z "$workspace_fqn" || -z "$app_name" ]]; then
-  echo "Deploy detected ($app_name in $workspace_fqn) but could not determine app name or workspace for auto-monitoring."
+if [[ -z "$workspace_fqn" && -z "$app_name" ]]; then
+  echo "Deploy detected but could not determine app name or workspace for auto-monitoring."
+  echo "Use the monitor skill to track this deployment."
+  exit 0
+elif [[ -z "$app_name" ]]; then
+  echo "Deploy detected in workspace $workspace_fqn but could not determine app name for auto-monitoring."
+  echo "Use the monitor skill to track this deployment."
+  exit 0
+elif [[ -z "$workspace_fqn" ]]; then
+  echo "Deploy detected for $app_name but could not determine workspace for auto-monitoring."
   echo "Use the monitor skill to track this deployment."
   exit 0
 fi

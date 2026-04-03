@@ -18,6 +18,14 @@ Before applying any manifest, verify all of the following:
 4. **Reasonable resource limits**: Verify CPU, memory, and GPU requests/limits are appropriate for the workload.
 5. **Health probes configured**: Services should have readiness and liveness probes with appropriate paths and thresholds.
 
+## Pre-Deploy: Set TFY_HOST
+
+Before any `tfy` CLI command, always set TFY_HOST:
+
+```bash
+export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
+```
+
 ## Build Source Rules
 
 - `build_source.type: local` requires `tfy deploy -f`, NOT `tfy apply -f`

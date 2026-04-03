@@ -13,6 +13,11 @@
     },
     {
       "match": { "tool": "shell" },
+      "command": ["bash", "./hooks/auto-approve-tfy-api.sh"],
+      "timeout": 5
+    },
+    {
+      "match": { "tool": "shell" },
       "command": ["bash", "./plugin-scripts/pre-tool-secret-scan.sh"],
       "timeout": 5
     }
