@@ -210,6 +210,52 @@ if [[ "$final_status" = "DEPLOY_SUCCESS" ]]; then
       echo "Health check: no response on /health, /healthz, /api/health, or /."
       echo "Service is deployed but not yet responding. This is normal for services with slow startup."
     fi
+
+    # For LLM deployments, test the OpenAI-compatible API
+    if [[ "$is_llm_deploy" = "true" && -n "$endpoint_url" ]]; then
+      echo ""
+      echo "Testing OpenAI-compatible API..."
+
+      # Test /v1/models endpoint (should list the served model)
+      models_response=$(curl -sf \
+        --connect-timeout 5 --max-time 15 \
+        "https://${endpoint_url}/v1/models" 2>/dev/null || echo "")
+
+      if [[ -n "$models_response" ]]; then
+        model_id=$(echo "$models_response" | jq -r '.data[0].id // empty' 2>/dev/null || echo "")
+        if [[ -n "$model_id" ]]; then
+          echo "OpenAI API: /v1/models responding — serving model: $model_id"
+
+          # Test /v1/completions with a tiny request
+          completion_response=$(curl -sf \
+            --connect-timeout 10 --max-time 30 \
+            -X POST "https://${endpoint_url}/v1/completions" \
+            -H "Content-Type: application/json" \
+            -d "{\"model\":\"$model_id\",\"prompt\":\"Hello\",\"max_tokens\":1}" 2>/dev/null || echo "")
+
+          if [[ -n "$completion_response" ]]; then
+            has_choices=$(echo "$completion_response" | jq -r '.choices[0].text // empty' 2>/dev/null || echo "")
+            if [[ -n "$has_choices" ]]; then
+              echo "OpenAI API: /v1/completions responding — inference working"
+            else
+              echo "OpenAI API: /v1/completions returned response but no choices (model may still be loading)"
+            fi
+          else
+            echo "OpenAI API: /v1/completions not yet responding (model may still be loading weights)"
+          fi
+
+          echo ""
+          echo "To use this endpoint:"
+          echo "  from openai import OpenAI"
+          echo "  client = OpenAI(base_url='https://${endpoint_url}/v1', api_key='your-key')"
+          echo "  response = client.completions.create(model='${model_id}', prompt='Hello', max_tokens=100)"
+        else
+          echo "OpenAI API: /v1/models responding but no models listed yet (still loading)"
+        fi
+      else
+        echo "OpenAI API: /v1/models not yet responding (model may still be loading)"
+      fi
+    fi
   fi
 elif [[ "$final_status" =~ ^(BUILD_FAILED|DEPLOY_FAILED|FAILED|CANCELLED)$ ]]; then
   echo "Deployment FAILED: $app_name ($final_status after ${elapsed}s)"
@@ -291,5 +337,5 @@ fi
 
 # Update state file with final status
 if [[ -n "$STATE_DIR" && -d "$STATE_DIR" ]]; then
-  echo "{\"app\":\"$app_name\",\"workspace\":\"$workspace_fqn\",\"status\":\"$final_status\",\"endpoint\":\"$endpoint_url\",\"ts\":$(date +%s)}" > "$STATE_DIR/last-deploy.json"
+  echo "{\"app\":\"$app_name\",\"workspace\":\"$workspace_fqn\",\"status\":\"$final_status\",\"endpoint\":\"$endpoint_url\",\"model\":\"${model_id:-}\",\"ts\":$(date +%s)}" > "$STATE_DIR/last-deploy.json"
 fi

@@ -1,0 +1,11 @@
+{
+  "name": "truefoundry",
+  "version": "1.0.0",
+  "description": "Deploy, monitor, and manage ML infrastructure on TrueFoundry with enforced workflows, automatic health verification, and failure diagnosis.",
+  "author": { "name": "TrueFoundry" },
+  "homepage": "https://github.com/truefoundry/tfy-deploy-skills",
+  "repository": "https://github.com/truefoundry/tfy-deploy-skills",
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

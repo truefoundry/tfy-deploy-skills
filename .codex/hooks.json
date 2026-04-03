@@ -1,0 +1,33 @@
+{
+  "SessionStart": [
+    {
+      "command": ["bash", "./plugin-scripts/session-start.sh"],
+      "timeout": 30
+    }
+  ],
+  "PreToolUse": [
+    {
+      "match": { "tool": "shell" },
+      "command": ["bash", "./plugin-scripts/block-delete-operations.sh"],
+      "timeout": 5
+    },
+    {
+      "match": { "tool": "shell" },
+      "command": ["bash", "./plugin-scripts/pre-tool-secret-scan.sh"],
+      "timeout": 5
+    }
+  ],
+  "PostToolUse": [
+    {
+      "match": { "tool": "shell" },
+      "command": ["bash", "./plugin-scripts/post-deploy-monitor.sh"],
+      "timeout": 900
+    }
+  ],
+  "Stop": [
+    {
+      "command": ["bash", "./plugin-scripts/stop-review-gate.sh"],
+      "timeout": 30
+    }
+  ]
+}
