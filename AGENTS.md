@@ -170,8 +170,8 @@ Determine what failed:
 - When the failure happened
 
 ```bash
-TFY_API_SH=~/.claude/skills/truefoundry-monitor/scripts/tfy-api.sh
-bash $TFY_API_SH GET '/api/svc/v1/apps?workspaceFqn=WORKSPACE_FQN&applicationName=APP_NAME'
+# Use repo-relative path (works in Codex context)
+bash skills/_shared/scripts/tfy-api.sh GET '/api/svc/v1/apps?workspaceFqn=WORKSPACE_FQN&applicationName=APP_NAME'
 ```
 
 Extract:
@@ -184,10 +184,10 @@ Get recent logs from the failed deployment:
 
 ```bash
 # Get workspace ID
-bash $TFY_API_SH GET '/api/svc/v1/workspaces?fqn=WORKSPACE_FQN'
+bash skills/_shared/scripts/tfy-api.sh GET '/api/svc/v1/workspaces?fqn=WORKSPACE_FQN'
 
 # Fetch logs (last 10 minutes)
-bash $TFY_API_SH GET '/api/svc/v1/logs/WORKSPACE_ID/download?applicationFqn=APP_FQN&startTs=START_TS&endTs=END_TS'
+bash skills/_shared/scripts/tfy-api.sh GET '/api/svc/v1/logs/WORKSPACE_ID/download?applicationFqn=APP_FQN&startTs=START_TS&endTs=END_TS'
 ```
 
 #### Logs Too Long

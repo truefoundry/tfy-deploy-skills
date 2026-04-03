@@ -61,8 +61,12 @@ if [[ -f ".env" ]]; then
     if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
       key="${line%%=*}"
       value="${line#*=}"
-      value="${value#\"}" && value="${value%\"}"
-      value="${value#\'}" && value="${value%\'}"
+      # Only strip matching outer quotes (avoid over-stripping mixed quotes)
+      if [[ "$value" =~ ^\".*\"$ ]]; then
+        value="${value#\"}" && value="${value%\"}"
+      elif [[ "$value" =~ ^\'.*\'$ ]]; then
+        value="${value#\'}" && value="${value%\'}"
+      fi
       export "$key=$value"
     fi
   done < .env
