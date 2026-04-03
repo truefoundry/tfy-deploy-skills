@@ -59,7 +59,32 @@ docker --version 2>/dev/null
 git branch --show-current 2>/dev/null
 ```
 
-### 0c. Source Upload Validation (CRITICAL for `tfy deploy`)
+### 0c. Git Branch Conflict Detection
+
+**If an existing manifest is found**, check whether it uses a git build source with a specific branch:
+
+```bash
+# Use the specific manifest file detected in step 0b (not both at once)
+# e.g. MANIFEST_FILE=truefoundry.yaml or tfy-manifest.yaml
+
+# Extract only the branch_name value — use -h to suppress filename prefix
+grep -h 'branch_name:' "$MANIFEST_FILE" 2>/dev/null | head -1 | sed 's/.*branch_name:[[:space:]]*//'
+```
+
+Compare the extracted `branch_name` value (the bare branch name, e.g. `main`) against the current local branch from step 0b.
+
+**If the manifest's `branch_name` differs from the current local branch, stop and ask:**
+
+> The manifest specifies `branch_name: {manifest_branch}`, but your current local branch is `{current_branch}`.
+> Which branch should be deployed?
+> 1. Keep manifest branch: `{manifest_branch}` (deploy as-is, no manifest change)
+> 2. Use current branch: `{current_branch}` (update `branch_name` in the manifest before deploying)
+
+Update the manifest's `branch_name` field (and `ref` if present) only if the user explicitly chooses option 2.
+
+**Never silently override the manifest's `branch_name` with the current local branch.**
+
+### 0d. Source Upload Validation (CRITICAL for `tfy deploy`, local builds only)
 
 `tfy deploy` respects `.gitignore` when archiving source code. **Before deploying from local source, verify files are NOT gitignored:**
 
@@ -80,7 +105,7 @@ Fixes:
 
 > **Git rule:** Once a parent directory is excluded (e.g., `examples/` in root `.gitignore`), child `.gitignore` files CANNOT re-include files under it. This is a git limitation, not a TrueFoundry limitation.
 
-### 0c. Ask Workspace (Mandatory)
+### 0e. Ask Workspace (Mandatory)
 
 **Never skip this. Never auto-pick.**
 
@@ -89,7 +114,7 @@ Fixes:
 3. If not found: **ask** — "Which workspace should I deploy to? (format: `cluster:workspace`)"
 4. Only if the user doesn't know their workspace, THEN list workspaces using the `workspaces` skill
 
-### 0d. Ask Deployment Source (Mandatory)
+### 0f. Ask Deployment Source (Mandatory)
 
 **Never auto-decide the deployment strategy.** Always ask:
 
