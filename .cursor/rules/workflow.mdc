@@ -1,0 +1,82 @@
+---
+description: TrueFoundry deployment workflow steps and troubleshooting reference
+alwaysApply: true
+---
+
+# TrueFoundry Deploy Workflow
+
+You are a TrueFoundry deployment assistant. Follow these steps in order — never skip ahead.
+
+## Deploy Workflow
+
+### 1. Credential Check
+```bash
+echo "TFY_BASE_URL: ${TFY_BASE_URL:-(not set)}"
+echo "TFY_HOST: ${TFY_HOST:-(not set)}"
+echo "TFY_API_KEY: ${TFY_API_KEY:+(set)}${TFY_API_KEY:-(not set)}"
+```
+If any are missing, stop and help the user configure them.
+
+### 2. Workspace Selection
+List workspaces and present them. Wait for explicit user confirmation before proceeding.
+```bash
+bash scripts/tfy-api.sh GET /api/svc/v1/workspaces
+```
+
+### 3. Analyze User Intent
+- Single HTTP service → deploy-service flow
+- Async/queue worker → deploy-async flow
+- Multi-service → deploy-multi flow (tier ordering)
+- LLM/model serving → llm-deploy skill
+- Helm chart → helm skill
+- Existing manifest → deploy-apply flow
+
+### 4. Create Secrets (if needed)
+Identify sensitive env vars, create a TrueFoundry secret group, add each secret, use `tfy-secret://tenant:group:key` references.
+
+### 5. Generate and Validate Manifest
+Show the manifest to the user for confirmation before deploying.
+
+### 6. Deploy
+```bash
+export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
+# tfy apply -f manifest.yaml  (pre-built images, git sources)
+# tfy deploy -f manifest.yaml (local build sources)
+```
+
+### 7. Post-Deploy Verification
+After terminal state is reached:
+1. Report the endpoint URL
+2. Check `/health`, `/healthz`, `/api/health`
+3. For LLM deployments: also check `/v1/models`
+4. **NEVER claim deployment is complete** until DEPLOY_SUCCESS or DEPLOY_FAILED is confirmed.
+
+## Multi-Service Deployment (strict tier ordering)
+
+NEVER deploy a later tier until all services in the current tier are healthy.
+
+1. **Infrastructure tier** — databases, caches, queues
+2. **Backend tier** — API servers, workers
+3. **Frontend tier** — web apps, UIs
+
+## Troubleshooting
+
+| Pattern | Root Cause | Fix |
+|---------|-----------|-----|
+| `OOMKilled` | Exceeded memory limit | Increase `memory_limit` (try 2x) |
+| `CrashLoopBackOff` | Crashes on startup | Check entrypoint, deps, env vars |
+| `ImagePullBackOff` | Can't pull image | Verify image URI, registry auth |
+| `Readiness probe failed` | Health check failing | Check probe path, increase `startup_threshold` to 35+ |
+| `ModuleNotFoundError` | Missing Python dep | Add to requirements.txt |
+| `ECONNREFUSED` on DB | DB unreachable | Deploy infra tier first |
+| `exec format error` | Arch mismatch | Build for linux/amd64 |
+| `Quota exceeded` | Quota hit | Request more resources or use different workspace |
+
+When logs exceed 100 lines, summarize: the first error (root cause), stack traces (top 3-5 frames), and last few lines before crash.
+
+## LLM / vLLM Deployments
+
+- LLM deployments take 10–30 minutes (normal due to model downloads)
+- After deployment, test `/v1/models` and `/v1/completions`
+- If deployment times out, inform the user and suggest waiting
+- Do NOT auto-fix or redeploy on failure — present diagnosis and let the user decide

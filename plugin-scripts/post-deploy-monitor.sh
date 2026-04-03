@@ -144,6 +144,7 @@ start_time=$(date +%s)
 final_status="UNKNOWN"
 endpoint_url=""
 last_status=""
+model_id=""
 
 while [[ $poll_count -lt $max_polls ]]; do
   # Adaptive interval: 15s for first 2min, 30s for 2-5min, 60s after
