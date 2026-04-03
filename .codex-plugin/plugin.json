@@ -6,6 +6,5 @@
   "homepage": "https://github.com/truefoundry/tfy-deploy-skills",
   "repository": "https://github.com/truefoundry/tfy-deploy-skills",
   "license": "MIT",
-  "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "skills": "./skills/"
 }

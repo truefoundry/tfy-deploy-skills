@@ -20,6 +20,11 @@ if [[ -f ".env" ]]; then
   done < .env
 fi
 
+# Bridge Claude plugin userConfig values (exported as CLAUDE_PLUGIN_OPTION_<KEY>)
+# so scripts work whether credentials come from .env, env vars, or plugin userConfig.
+TFY_BASE_URL="${TFY_BASE_URL:-${CLAUDE_PLUGIN_OPTION_TFY_BASE_URL:-}}"
+TFY_API_KEY="${TFY_API_KEY:-${CLAUDE_PLUGIN_OPTION_TFY_API_KEY:-}}"
+
 # Resolve aliases
 TFY_BASE_URL="${TFY_BASE_URL:-${TFY_HOST:-${TFY_API_HOST:-}}}"
 
