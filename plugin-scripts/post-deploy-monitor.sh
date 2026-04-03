@@ -159,6 +159,9 @@ while [[ $poll_count -lt $max_polls ]]; do
   sleep "$interval"
   poll_count=$((poll_count + 1))
 
+  # Recalculate elapsed after sleep for accurate status messages
+  elapsed=$(( $(date +%s) - start_time ))
+
   # Fetch status
   response=$(curl -sf \
     --connect-timeout 5 --max-time 15 \

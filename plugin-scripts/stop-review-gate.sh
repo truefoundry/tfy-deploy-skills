@@ -39,11 +39,11 @@ endpoint=$(jq -r '.endpoint // ""' "$last_deploy" 2>/dev/null || echo "")
 # --- Terminal success: verify endpoint is actually reachable ---
 if [[ "$status" = "DEPLOY_SUCCESS" ]]; then
   if [[ -n "$endpoint" ]]; then
-    http_code=$(curl -sf -o /dev/null -w '%{http_code}' \
+    http_code=$(curl -s -o /dev/null -w '%{http_code}' \
       --connect-timeout 5 --max-time 10 \
-      "https://$endpoint/" 2>/dev/null || echo "000")
+      "https://$endpoint/" 2>/dev/null) || true
 
-    if [[ "$http_code" = "000" ]]; then
+    if [[ -z "$http_code" || "$http_code" = "000" ]]; then
       echo "Deployment of $app_name reports success, but the endpoint (https://$endpoint/) is not responding."
       echo "The service may still be starting up. Verify it's reachable before finishing."
       exit 1

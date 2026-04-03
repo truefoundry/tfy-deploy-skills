@@ -27,15 +27,15 @@ blocked=false
 reason=""
 
 # TrueFoundry API keys (tfy-* pattern, typically 40+ chars)
-# Use -E (extended regex) instead of -P (Perl regex) for macOS/BSD compatibility
-if echo "$COMMAND" | grep -qE '(TFY_API_KEY|api.key|api_key)[[:space:]]*[=:][[:space:]]*["\x27]?tfy-[A-Za-z0-9]{20,}'; then
+# Use -E (extended regex) for macOS/BSD compatibility; use literal single quotes via shell concatenation
+if echo "$COMMAND" | grep -qE '(TFY_API_KEY|api.key|api_key)[[:space:]]*[=:][[:space:]]*["'"'"']?tfy-[A-Za-z0-9]{20,}'; then
   blocked=true
   reason="Hardcoded TFY_API_KEY detected. Use environment variable or .env file instead."
 fi
 
 # Generic long tokens in manifest YAML/JSON (env var values that look like secrets)
 # Match: value: "sk-..." or "token-..." or base64-like strings 40+ chars in env sections
-if echo "$COMMAND" | grep -qE 'value:[[:space:]]*["\x27][A-Za-z0-9+/=_-]{40,}["\x27]'; then
+if echo "$COMMAND" | grep -qE 'value:[[:space:]]*["'"'"'][A-Za-z0-9+/=_-]{40,}["'"'"']'; then
   # Check if this is in a deploy/apply context
   if echo "$COMMAND" | grep -qE '(tfy[[:space:]]+(apply|deploy)|/api/svc/v1/apps)'; then
     blocked=true
