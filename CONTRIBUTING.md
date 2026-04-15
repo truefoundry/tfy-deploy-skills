@@ -36,13 +36,20 @@ cd tfy-deploy-skills
 
 3. **Use CLI-first instructions with Direct API fallback.** Every skill should work when CLI is available, with API fallback when needed.
 
-4. **Reference shared files** instead of duplicating content:
+4. **Reference shared files** instead of duplicating content (13 shared references in `skills/_shared/references/`):
+   - `references/api-endpoints.md` — full API endpoint reference
    - `references/prerequisites.md` — credential checks, env vars
    - `references/tfy-api-setup.md` — agent path table for tfy-api.sh
+   - `references/cli-fallback.md` — CLI-first with API fallback patterns
    - `references/gpu-reference.md` — GPU types and sizing
    - `references/cluster-discovery.md` — cluster ID, base domains, storage classes
    - `references/health-probes.md` — probe configuration
    - `references/resource-estimation.md` — CPU/memory/replica sizing
+   - `references/manifest-schema.md` — YAML manifest field reference
+   - `references/manifest-defaults.md` — sensible defaults for manifests
+   - `references/rest-api-manifest.md` — deploying via REST API
+   - `references/container-versions.md` — container version reference
+   - `references/intent-clarification.md` — disambiguation templates
 
 5. **Reference the `status` skill** for preflight checks.
 

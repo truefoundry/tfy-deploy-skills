@@ -151,7 +151,7 @@ tfy-deploy-skills/
   skills/
     _shared/               # Canonical copies of shared scripts and references
       scripts/             # tfy-api.sh, tfy-version.sh
-      references/          # 12 shared reference docs
+      references/          # 13 shared reference docs
     deploy/SKILL.md        # One directory per skill
     monitor/SKILL.md
     ...
