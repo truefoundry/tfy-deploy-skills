@@ -24,6 +24,9 @@ if [[ "$COMMAND" =~ tfy[[:space:]]+(apply|deploy)[[:space:]]+-f[[:space:]]+([^[:
   # Try to extract app name from the manifest file
   if [[ -f "$manifest_file" ]]; then
     app_name=$(grep -m1 '^name:' "$manifest_file" 2>/dev/null | sed 's/^name:[[:space:]]*//' || true)
+    # Strip surrounding YAML quotes (e.g., name: "my-app" -> my-app)
+    app_name="${app_name#\"}" && app_name="${app_name%\"}"
+    app_name="${app_name#\'}" && app_name="${app_name%\'}"
   fi
 elif [[ "$COMMAND" =~ tfy[[:space:]]+(apply|deploy)([[:space:]]|$) ]]; then
   # tfy deploy / tfy apply without -f (working directory deploy)
@@ -33,6 +36,9 @@ elif [[ "$COMMAND" =~ tfy[[:space:]]+(apply|deploy)([[:space:]]|$) ]]; then
     if [[ -f "$candidate" ]]; then
       manifest_file="$candidate"
       app_name=$(grep -m1 '^name:' "$candidate" 2>/dev/null | sed 's/^name:[[:space:]]*//' || true)
+      # Strip surrounding YAML quotes (e.g., name: "my-app" -> my-app)
+      app_name="${app_name#\"}" && app_name="${app_name%\"}"
+      app_name="${app_name#\'}" && app_name="${app_name%\'}"
       break
     fi
   done
@@ -71,6 +77,11 @@ if [[ -f ".env" ]]; then
     fi
   done < .env
 fi
+
+# Bridge Claude plugin userConfig values (same pattern as session-start.sh)
+# Each hook runs in a separate shell process, so session-start.sh exports don't persist.
+TFY_BASE_URL="${TFY_BASE_URL:-${CLAUDE_PLUGIN_OPTION_TFY_BASE_URL:-}}"
+TFY_API_KEY="${TFY_API_KEY:-${CLAUDE_PLUGIN_OPTION_TFY_API_KEY:-}}"
 
 TFY_BASE_URL="${TFY_BASE_URL:-${TFY_HOST:-${TFY_API_HOST:-}}}"
 BASE="${TFY_BASE_URL%/}"
@@ -123,7 +134,8 @@ fi
 SESSION_KEY="${CLAUDE_SESSION_ID:-${PPID:-$$}}"
 STATE_DIR=$(cat "${TMPDIR:-/tmp}/tfy-plugin-state-${SESSION_KEY}" 2>/dev/null || echo "")
 if [[ -n "$STATE_DIR" && -d "$STATE_DIR" ]]; then
-  echo "{\"app\":\"$app_name\",\"workspace\":\"$workspace_fqn\",\"ts\":$(date +%s)}" >> "$STATE_DIR/deployments.jsonl"
+  jq -n --arg app "$app_name" --arg workspace "$workspace_fqn" --argjson ts "$(date +%s)" \
+    '{"app":$app,"workspace":$workspace,"ts":$ts}' >> "$STATE_DIR/deployments.jsonl"
 fi
 
 # --- Poll deployment status ---
@@ -355,5 +367,13 @@ fi
 
 # Update state file with final status
 if [[ -n "$STATE_DIR" && -d "$STATE_DIR" ]]; then
-  echo "{\"app\":\"$app_name\",\"workspace\":\"$workspace_fqn\",\"status\":\"$final_status\",\"endpoint\":\"$endpoint_url\",\"model\":\"${model_id:-}\",\"ts\":$(date +%s)}" > "$STATE_DIR/last-deploy.json"
+  jq -n \
+    --arg app "$app_name" \
+    --arg workspace "$workspace_fqn" \
+    --arg status "$final_status" \
+    --arg endpoint "$endpoint_url" \
+    --arg model "${model_id:-}" \
+    --argjson ts "$(date +%s)" \
+    '{"app":$app,"workspace":$workspace,"status":$status,"endpoint":$endpoint,"model":$model,"ts":$ts}' \
+    > "$STATE_DIR/last-deploy.json"
 fi

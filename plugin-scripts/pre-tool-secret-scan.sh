@@ -16,9 +16,11 @@ if [[ -z "$COMMAND" ]]; then
 fi
 
 # Only scan commands that could contain deploy manifests or API calls
-# Skip simple read-only commands
+# Skip simple read-only commands — but NOT if they chain into a deploy (e.g., cat <<EOF ... && tfy apply)
 if [[ "$COMMAND" =~ ^[[:space:]]*(ls|cat|head|tail|grep|find|echo|pwd|cd|which|tfy[[:space:]]--version) ]]; then
-  exit 2
+  if ! echo "$COMMAND" | grep -qE '(tfy[[:space:]]+(apply|deploy)|/api/svc/v1/apps)'; then
+    exit 2
+  fi
 fi
 
 # --- Pattern matching for likely hardcoded secrets ---
