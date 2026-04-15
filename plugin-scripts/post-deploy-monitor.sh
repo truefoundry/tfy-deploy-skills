@@ -152,9 +152,9 @@ encoded_app=$(printf '%s' "$app_name" | python3 -c "import urllib.parse,sys; pri
 
 poll_count=0
 if [[ "$is_llm_deploy" = "true" ]]; then
-  max_polls=60  # ~20 minutes with adaptive intervals
+  max_polls=60  # ~51 minutes with adaptive intervals (15s/30s/60s)
 else
-  max_polls=40  # ~10 minutes with adaptive intervals
+  max_polls=40  # ~31 minutes with adaptive intervals (15s/30s/60s)
 fi
 start_time=$(date +%s)
 final_status="UNKNOWN"

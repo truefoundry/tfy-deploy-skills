@@ -26,7 +26,7 @@
     {
       "match": { "tool": "shell" },
       "command": ["bash", "./plugin-scripts/post-deploy-monitor.sh"],
-      "timeout": 1800
+      "timeout": 3600
     }
   ],
   "Stop": [
