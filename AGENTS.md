@@ -6,9 +6,11 @@ A collection of 22 AI coding-agent skill definitions (markdown + shell scripts) 
 
 This is a **content/tooling repository** -- there are no application servers, databases, or Docker containers. The codebase consists of:
 
-- **skills/** -- 21 skill directories (e.g. `deploy`, `helm`, `llm-deploy`, `logs`, `status`, etc.) each containing a `SKILL.md` frontmatter file, plus `_shared/` with canonical scripts and references synced to all skills.
+- **skills/** -- 22 skill directories (e.g. `deploy`, `helm`, `llm-deploy`, `logs`, `status`, etc.) each containing a `SKILL.md` frontmatter file, plus `_shared/` with canonical scripts and references synced to all skills.
 - **scripts/** -- development and CI tooling (validation, sync, install, tests).
-- **hooks/** -- git pre-push hook and Claude Code auto-approve hook.
+- **hooks/** -- Claude Code hook definitions (`hooks.json`), auto-approve hook, and git pre-push hook.
+- **plugin-scripts/** -- hook implementations (session-start, block-delete, secret-scan, deploy-monitor, verification gate).
+- **agents/** -- specialized agent definitions (deploy-orchestrator, troubleshoot).
 
 ### Key Commands
 
