@@ -1,0 +1,70 @@
+---
+description: TrueFoundry deployment rules for YAML manifests and service configuration
+globs: ["*.yaml", "*.yml", "tfy-manifest*", "truefoundry*"]
+alwaysApply: false
+---
+
+# TrueFoundry Manifest Rules
+
+These rules apply when working with TrueFoundry deployment manifests (YAML files).
+
+## Manifest Validation Checklist
+
+Before applying any manifest, verify all of the following:
+
+1. **Exposed ports require hosts**: If any port has `expose: true`, it MUST have a `host` field. Deployments will fail without this.
+2. **Workspace FQN is set**: The `workspace_fqn` field must reference the user-confirmed workspace. Never hardcode or guess.
+3. **No inline secrets**: All sensitive values (API keys, passwords, tokens) must use `tfy-secret://tenant:group:key` references. Never put raw values in YAML.
+4. **Reasonable resource limits**: Verify CPU, memory, and GPU requests/limits are appropriate for the workload.
+5. **Health probes configured**: Services should have readiness and liveness probes with appropriate paths and thresholds.
+
+## Pre-Deploy: Set TFY_HOST
+
+Before any `tfy` CLI command, always set TFY_HOST:
+
+```bash
+export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
+```
+
+## Build Source Rules
+
+- `build_source.type: local` requires `tfy deploy -f`, NOT `tfy apply -f`
+- `build_source.type: image` or `build_source.type: git` can use `tfy apply -f`
+- Always build for `linux/amd64` architecture
+
+## Port Configuration
+
+```yaml
+ports:
+  - port: 8080
+    expose: true
+    host: "myapp.example.com"  # REQUIRED when expose: true
+    protocol: TCP
+```
+
+## Environment Variables
+
+```yaml
+env:
+  # Public values - inline is fine
+  APP_ENV: "production"
+  # Sensitive values - MUST use secret references
+  DATABASE_URL: "tfy-secret://tenant:my-secret-group:database-url"
+  API_KEY: "tfy-secret://tenant:my-secret-group:api-key"
+```
+
+## Resource Defaults
+
+- **Small service**: 0.5 CPU, 512Mi memory
+- **Medium service**: 1 CPU, 1Gi memory
+- **Large service**: 2 CPU, 4Gi memory
+- **LLM serving**: 4 CPU, 16Gi memory, 1 GPU (type depends on model size)
+
+## Multi-Service Ordering
+
+When a manifest references multiple services, deploy in tier order:
+1. Infrastructure (databases, caches, queues)
+2. Backend (API servers, workers)
+3. Frontend (web apps, UIs)
+
+Never deploy a later tier until all earlier tiers are healthy.

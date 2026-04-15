@@ -6,15 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Repository: `truefoundry/tfy-deploy-skills`
 
-A collection of 21 AI agent skills (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format. Skills let AI assistants deploy, monitor, and manage ML infrastructure on TrueFoundry. This is a content/tooling repo — no application servers, databases, or Docker containers.
+A collection of 22 AI agent skills (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format, plus a Claude Code plugin with hooks, agents, and deployment enforcement. This is a content/tooling repo — no application servers, databases, or Docker containers.
 
-Install: `npx skills add truefoundry/tfy-deploy-skills --all`
+Plugin install (Claude Code): `/plugin marketplace add truefoundry/tfy-deploy-skills` then `/plugin install truefoundry@truefoundry-deploy-skills`
+Standalone skills: `npx skills add truefoundry/tfy-deploy-skills --all`
 
 ## Commands
 
 | Task | Command |
 |------|---------|
 | Lint shell scripts | `shellcheck scripts/*.sh hooks/auto-approve-tfy-api.sh skills/_shared/scripts/tfy-api.sh` |
+| Lint plugin scripts | `shellcheck plugin-scripts/*.sh` |
 | Lint skill scripts | `find skills -mindepth 2 -name '*.sh' -print0 \| xargs -0 -r shellcheck` |
 | Validate skills | `./scripts/validate-skills.sh` |
 | Security checks | `./scripts/validate-skill-security.sh` |
@@ -29,7 +31,10 @@ Tests require `python3` and `curl` (mock HTTP server on ephemeral port, fully of
 ## Architecture
 
 ### Skill layout
-Each of the 21 skills lives in `skills/{name}/SKILL.md` with YAML frontmatter (name, description, allowed-tools). Shared scripts and references live in `skills/_shared/` and are synced to individual skill directories via `./scripts/sync-shared.sh`.
+Each of the 22 skills lives in `skills/{name}/SKILL.md` with YAML frontmatter (name, description, allowed-tools). Shared scripts and references live in `skills/_shared/` and are synced to individual skill directories via `./scripts/sync-shared.sh`.
+
+### Plugin layout
+The Claude Code plugin lives in `.claude-plugin/` (plugin.json + marketplace.json). Hook definitions in `hooks/hooks.json`, hook implementations in `plugin-scripts/`, agents in `agents/`. Codex equivalents: `.codex-plugin/plugin.json`, `.codex/hooks.json`, `AGENTS.md`.
 
 ### Core shared files
 - `skills/_shared/scripts/tfy-api.sh` — authenticated REST API helper (reads `.env` safely, handles auth, retries, validation)

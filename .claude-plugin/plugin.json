@@ -1,0 +1,33 @@
+{
+  "name": "truefoundry",
+  "version": "1.0.0",
+  "description": "Deploy, monitor, and manage ML infrastructure on TrueFoundry. Enforces reliable deployment workflows with automatic health verification, credential checks, and failure diagnosis.",
+  "author": {
+    "name": "TrueFoundry",
+    "url": "https://github.com/truefoundry"
+  },
+  "repository": "https://github.com/truefoundry/tfy-deploy-skills",
+  "license": "MIT",
+  "keywords": [
+    "truefoundry",
+    "deploy",
+    "ml",
+    "infrastructure",
+    "kubernetes",
+    "llm",
+    "gpu"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json",
+  "userConfig": {
+    "TFY_BASE_URL": {
+      "description": "TrueFoundry platform URL (e.g., https://your-org.truefoundry.cloud)",
+      "sensitive": false
+    },
+    "TFY_API_KEY": {
+      "description": "TrueFoundry API key for authentication",
+      "sensitive": true
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "truefoundry-deploy-skills",
+  "owner": {
+    "name": "TrueFoundry",
+    "email": "support@truefoundry.com"
+  },
+  "metadata": {
+    "description": "Deploy, monitor, and manage ML infrastructure on TrueFoundry",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "truefoundry",
+      "description": "Full TrueFoundry plugin with deploy orchestrator, troubleshoot agent, hooks (credential bootstrap, delete blocking, secret scanning, deploy monitoring, stop gate), and 22 deployment skills",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/access-control",
+        "./skills/access-tokens",
+        "./skills/applications",
+        "./skills/deploy",
+        "./skills/docs",
+        "./skills/gitops",
+        "./skills/helm",
+        "./skills/jobs",
+        "./skills/llm-deploy",
+        "./skills/logs",
+        "./skills/ml-repos",
+        "./skills/monitor",
+        "./skills/notebooks",
+        "./skills/onboarding",
+        "./skills/secrets",
+        "./skills/service-test",
+        "./skills/ssh-server",
+        "./skills/status",
+        "./skills/tracing",
+        "./skills/volumes",
+        "./skills/workflows",
+        "./skills/workspaces"
+      ]
+    }
+  ]
+}
