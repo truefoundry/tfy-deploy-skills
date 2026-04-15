@@ -52,8 +52,11 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/svc/v1/jobs/trigger` | Trigger a job run (body: applicationId) |
+| POST | `/api/svc/v1/jobs/terminate` | Terminate a running job |
 | GET | `/api/svc/v1/jobs/{jobId}/runs` | List job runs (query: searchPrefix, sortBy) |
-| GET | `/api/svc/v1/jobs/{jobId}/runs/{runName}` | Get a specific job run |
+| GET | `/api/svc/v1/jobs/{jobId}/runs/{jobRunName}` | Get a specific job run |
+| DELETE | `/api/svc/v1/jobs/{jobId}/runs/{jobRunName}` | Delete a job run |
+| POST | `/api/svc/v1/jobs/{jobId}/command` | Send command to a job |
 
 ## Logs
 | Method | Path | Description |
@@ -75,11 +78,13 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 ## Tracing
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/ml/v1/tracing-projects` | List tracing projects |
-| POST | `/api/ml/v1/tracing-projects` | Create tracing project (body: name) |
-| GET | `/api/ml/v1/tracing-projects/{id}` | Get tracing project |
-| GET | `/api/ml/v1/tracing-projects/{id}/applications` | List applications in project |
-| POST | `/api/ml/v1/tracing-projects/{id}/applications` | Create application in project (body: name) |
+| GET | `/api/svc/v1/tracing-projects` | List tracing projects |
+| PUT | `/api/svc/v1/tracing-projects` | Create or update tracing project (body: name) |
+| GET | `/api/svc/v1/tracing-projects/{id}` | Get tracing project by ID |
+| DELETE | `/api/svc/v1/tracing-projects/{id}` | Delete tracing project |
+| GET | `/api/svc/v1/tracing-applications` | List tracing applications |
+| POST | `/api/svc/v1/tracing-applications` | Create tracing application (body: name, tracingProjectId) |
+| DELETE | `/api/svc/v1/tracing-applications/{id}` | Delete tracing application |
 
 ## ML Repos
 | Method | Path | Description |
@@ -115,27 +120,40 @@ Auth: `Authorization: Bearer $TFY_API_KEY` (read from env; never hardcode or pri
 ## Roles
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/svc/v1/roles` | List roles (query: resourceType) |
-| POST | `/api/svc/v1/roles` | Create a role (body: name, displayName, description, resourceType, permissions) |
-| GET | `/api/svc/v1/roles/{id}` | Get role by ID |
-| DELETE | `/api/svc/v1/roles/{id}` | Delete a role |
+| GET | `/api/svc/v1/role/list` | List all roles |
+| GET | `/api/svc/v1/role` | Get roles (query: resourceType) |
+| PUT | `/api/svc/v1/role` | Create or update a role (body: name, displayName, description, resourceType, permissions) |
+| DELETE | `/api/svc/v1/role/{id}` | Delete a role |
+| GET | `/api/svc/v1/role/actions` | Get available actions for a resource type (query: resourceType) |
 
 ## Teams
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/svc/v1/teams` | List teams |
-| POST | `/api/svc/v1/teams` | Create a team (body: name, description) |
+| PUT | `/api/svc/v1/teams` | Create or update a team (body: name, description) |
 | GET | `/api/svc/v1/teams/{id}` | Get team by ID |
 | DELETE | `/api/svc/v1/teams/{id}` | Delete a team |
-| POST | `/api/svc/v1/teams/{id}/members` | Add member to team (body: subject, role) |
-| DELETE | `/api/svc/v1/teams/{id}/members/{subject}` | Remove member from team |
+| GET | `/api/svc/v1/teams/user` | List teams for the current user |
+| GET | `/api/svc/v1/teams/{id}/permissions` | Get team permissions |
 
-## Collaborators
+## Authorization (Collaborators)
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/svc/v1/collaborators` | List collaborators on a resource (query: resourceType, resourceId) |
-| POST | `/api/svc/v1/collaborators` | Add collaborator to a resource (body: resourceType, resourceId, subject, roleId) |
-| DELETE | `/api/svc/v1/collaborators` | Remove collaborator from a resource (body: resourceType, resourceId, subject) |
+| GET | `/api/svc/v1/authorize/{resourceType}/{resourceId}` | List authorized users/collaborators on a resource |
+| POST | `/api/svc/v1/authorize/{resourceType}/{resourceId}` | Add collaborator to a resource (body: subject, roleId) |
+| PUT | `/api/svc/v1/authorize/{resourceType}/{resourceId}` | Update collaborator role on a resource |
+| DELETE | `/api/svc/v1/authorize/{resourceType}/{resourceId}` | Remove collaborator from a resource (body: subject) |
+| POST | `/api/svc/v1/authorize/check-access` | Check if a user has access to a resource |
+| GET | `/api/svc/v1/authorize/permissions` | Get permissions for a resource |
+
+## Role Bindings
+| Method | Path | Description |
+|--------|------|-------------|
+| PUT | `/api/svc/v1/role-bindings` | Create or update a role binding |
+| GET | `/api/svc/v1/role-bindings` | List all role bindings |
+| GET | `/api/svc/v1/role-bindings/{id}` | Get role binding by ID |
+| DELETE | `/api/svc/v1/role-bindings/{id}` | Delete role binding by ID |
+| GET | `/api/svc/v1/role-bindings/exists` | Check if a role binding exists |
+| POST | `/api/svc/v1/role-bindings/inline` | Create inline role bindings |
 
 ## Guardrails
 | Method | Path | Description |
