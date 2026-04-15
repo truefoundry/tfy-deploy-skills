@@ -22,11 +22,14 @@ No account yet? Run `uv run tfy register` to sign up. The `tfy` CLI and workspac
 
 ### Claude Code (Plugin -- Full Enforcement)
 
-Install from the Claude Code plugin marketplace:
+Add the marketplace and install the plugin:
 
 ```
-/install-plugin truefoundry/tfy-deploy-skills
+/plugin marketplace add truefoundry/tfy-deploy-skills
+/plugin install truefoundry@truefoundry-deploy-skills
 ```
+
+Or interactively: `/plugin` → **Discover** tab → select **truefoundry** → **Install now**.
 
 What you get:
 - 22 skills loaded automatically
@@ -37,9 +40,9 @@ What you get:
 
 ### Codex CLI (Plugin -- Full Enforcement)
 
-Install from the Codex plugin marketplace:
+Clone the repo and point Codex at it, or install via the Codex plugin system:
 
-```
+```bash
 codex install truefoundry/tfy-deploy-skills
 ```
 
@@ -49,7 +52,7 @@ Enable hooks in your `config.toml`:
 codex_hooks = true
 ```
 
-Same hooks and skills as Claude Code. Agents are not yet supported in Codex.
+Same hooks and skills as Claude Code. Agents are defined in `AGENTS.md` for Codex.
 
 ### Cursor (Rules -- Advisory)
 
