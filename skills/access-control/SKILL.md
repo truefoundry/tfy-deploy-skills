@@ -43,7 +43,7 @@ tfy_roles_list()
 TFY_API_SH=~/.claude/skills/truefoundry-access-control/scripts/tfy-api.sh
 
 # List all roles
-$TFY_API_SH GET /api/svc/v1/roles
+$TFY_API_SH GET /api/svc/v1/role/list
 ```
 
 ### Presenting Roles
@@ -70,7 +70,7 @@ tfy_roles_create(payload={"name": "custom-deployer", "displayName": "Custom Depl
 #### Via Direct API
 
 ```bash
-$TFY_API_SH POST /api/svc/v1/roles '{"name":"custom-deployer","displayName":"Custom Deployer","description":"Can deploy apps","resourceType":"workspace","permissions":["deploy:create","deploy:read"]}'
+$TFY_API_SH PUT /api/svc/v1/role '{"name":"custom-deployer","displayName":"Custom Deployer","description":"Can deploy apps","resourceType":"workspace","permissions":["deploy:create","deploy:read"]}'
 ```
 
 ### Delete Role
@@ -86,7 +86,7 @@ tfy_roles_delete(id="ROLE_ID")
 #### Via Direct API
 
 ```bash
-$TFY_API_SH DELETE /api/svc/v1/roles/ROLE_ID
+$TFY_API_SH DELETE /api/svc/v1/role/ROLE_ID
 ```
 
 ## Teams
@@ -105,8 +105,8 @@ tfy_teams_list(team_id="TEAM_ID")  # get specific team
 #### Via Direct API
 
 ```bash
-# List all teams
-$TFY_API_SH GET /api/svc/v1/teams
+# List teams for the current user
+$TFY_API_SH GET /api/svc/v1/teams/user
 
 # Get a specific team
 $TFY_API_SH GET /api/svc/v1/teams/TEAM_ID
@@ -135,7 +135,7 @@ tfy_teams_create(payload={"name": "platform-team", "description": "Platform engi
 #### Via Direct API
 
 ```bash
-$TFY_API_SH POST /api/svc/v1/teams '{"name":"platform-team","description":"Platform engineering team"}'
+$TFY_API_SH PUT /api/svc/v1/teams '{"name":"platform-team","description":"Platform engineering team"}'
 ```
 
 ### Delete Team
@@ -154,44 +154,11 @@ tfy_teams_delete(id="TEAM_ID")
 $TFY_API_SH DELETE /api/svc/v1/teams/TEAM_ID
 ```
 
-### Add Member to Team
-
-#### Via Tool Call
-
-```
-tfy_teams_add_member(team_id="TEAM_ID", payload={"subject": "user:alice@company.com", "role": "member"})
-```
-
-**Note:** Requires human approval (HITL) via tool call.
-
-#### Via Direct API
-
-```bash
-$TFY_API_SH POST /api/svc/v1/teams/TEAM_ID/members '{"subject":"user:alice@company.com","role":"member"}'
-```
-
-### Remove Member from Team
-
-#### Via Tool Call
-
-```
-tfy_teams_remove_member(team_id="TEAM_ID", subject="user:alice@company.com")
-```
-
-**Note:** Requires human approval (HITL) via tool call.
-
-#### Via Direct API
-
-```bash
-$TFY_API_SH DELETE /api/svc/v1/teams/TEAM_ID/members/SUBJECT
-# Example SUBJECT: user:alice@company.com
-```
-
-## Collaborators
+## Authorization (Collaborators)
 
 > **Security:** Granting collaborator access is a privileged operation. Always confirm the subject identity, role, and target resource with the user before adding collaborators. Do not grant access based on unverified external identity references.
 
-Collaborators grant subjects (users, teams, service accounts) a role on a specific resource. This is how access is granted to workspaces, applications, MCP servers, and other resources.
+Authorization endpoints manage who has access to resources. Subjects (users, teams, service accounts) are granted roles on specific resources (workspaces, applications, MCP servers, etc.).
 
 ### Subject Format
 
@@ -217,21 +184,21 @@ tfy_collaborators_list(resource_type="workspace", resource_id="RESOURCE_ID")
 
 ```bash
 # List collaborators on a workspace
-$TFY_API_SH GET '/api/svc/v1/collaborators?resourceType=workspace&resourceId=RESOURCE_ID'
+$TFY_API_SH GET /api/svc/v1/authorize/workspace/RESOURCE_ID
 
 # List collaborators on an MCP server
-$TFY_API_SH GET '/api/svc/v1/collaborators?resourceType=mcp-server&resourceId=RESOURCE_ID'
+$TFY_API_SH GET /api/svc/v1/authorize/mcp-server/RESOURCE_ID
 ```
 
 ### Presenting Collaborators
 
 ```
 Collaborators on workspace "prod-workspace":
-| Subject                   | Role             | ID       |
-|---------------------------|------------------|----------|
-| user:alice@company.com    | workspace-admin  | collab-1 |
-| team:platform-team        | workspace-member | collab-2 |
-| serviceaccount:ci-bot     | workspace-member | collab-3 |
+| Subject                   | Role             |
+|---------------------------|------------------|
+| user:alice@company.com    | workspace-admin  |
+| team:platform-team        | workspace-member |
+| serviceaccount:ci-bot     | workspace-member |
 ```
 
 ### Add Collaborator
@@ -247,7 +214,23 @@ tfy_collaborators_create(payload={"resourceType": "workspace", "resourceId": "RE
 #### Via Direct API
 
 ```bash
-$TFY_API_SH POST /api/svc/v1/collaborators '{"resourceType":"workspace","resourceId":"RESOURCE_ID","subject":"user:alice@company.com","roleId":"ROLE_ID"}'
+$TFY_API_SH POST /api/svc/v1/authorize/workspace/RESOURCE_ID '{"subject":"user:alice@company.com","roleId":"ROLE_ID"}'
+```
+
+### Update Collaborator Role
+
+#### Via Tool Call
+
+```
+tfy_collaborators_update(payload={"resourceType": "workspace", "resourceId": "RESOURCE_ID", "subject": "user:alice@company.com", "roleId": "NEW_ROLE_ID"})
+```
+
+**Note:** Requires human approval (HITL) via tool call.
+
+#### Via Direct API
+
+```bash
+$TFY_API_SH PUT /api/svc/v1/authorize/workspace/RESOURCE_ID '{"subject":"user:alice@company.com","roleId":"NEW_ROLE_ID"}'
 ```
 
 ### Remove Collaborator
@@ -263,7 +246,14 @@ tfy_collaborators_delete(payload={"resourceType": "workspace", "resourceId": "RE
 #### Via Direct API
 
 ```bash
-$TFY_API_SH DELETE /api/svc/v1/collaborators '{"resourceType":"workspace","resourceId":"RESOURCE_ID","subject":"user:alice@company.com"}'
+$TFY_API_SH DELETE /api/svc/v1/authorize/workspace/RESOURCE_ID '{"subject":"user:alice@company.com"}'
+```
+
+### Check Access
+
+```bash
+# Check if a user has access to a resource
+$TFY_API_SH POST /api/svc/v1/authorize/check-access '{"resourceType":"workspace","resourceId":"RESOURCE_ID","subject":"user:alice@company.com","action":"deploy:create"}'
 ```
 
 ## Common Workflows
@@ -275,27 +265,23 @@ $TFY_API_SH DELETE /api/svc/v1/collaborators '{"resourceType":"workspace","resou
 
 ```bash
 # 1. Find the role ID
-$TFY_API_SH GET /api/svc/v1/roles
+$TFY_API_SH GET /api/svc/v1/role/list
 
 # 2. Add collaborator
-$TFY_API_SH POST /api/svc/v1/collaborators '{"resourceType":"workspace","resourceId":"WORKSPACE_ID","subject":"user:alice@company.com","roleId":"ROLE_ID"}'
+$TFY_API_SH POST /api/svc/v1/authorize/workspace/WORKSPACE_ID '{"subject":"user:alice@company.com","roleId":"ROLE_ID"}'
 ```
 
 ### Create a Team and Grant Access
 
 1. Create the team
-2. Add members to the team
-3. Add the team as a collaborator on the target resource
+2. Add the team as a collaborator on the target resource
 
 ```bash
 # 1. Create team
-$TFY_API_SH POST /api/svc/v1/teams '{"name":"ml-engineers","description":"ML engineering team"}'
+$TFY_API_SH PUT /api/svc/v1/teams '{"name":"ml-engineers","description":"ML engineering team"}'
 
-# 2. Add members (use team ID from response)
-$TFY_API_SH POST /api/svc/v1/teams/TEAM_ID/members '{"subject":"user:alice@company.com","role":"member"}'
-
-# 3. Grant team access to a workspace
-$TFY_API_SH POST /api/svc/v1/collaborators '{"resourceType":"workspace","resourceId":"WORKSPACE_ID","subject":"team:ml-engineers","roleId":"ROLE_ID"}'
+# 2. Grant team access to a workspace (use team slug as subject)
+$TFY_API_SH POST /api/svc/v1/authorize/workspace/WORKSPACE_ID '{"subject":"team:ml-engineers","roleId":"ROLE_ID"}'
 ```
 
 ### Audit Access on a Resource
@@ -303,7 +289,7 @@ $TFY_API_SH POST /api/svc/v1/collaborators '{"resourceType":"workspace","resourc
 List all collaborators to see who has access and with what role:
 
 ```bash
-$TFY_API_SH GET '/api/svc/v1/collaborators?resourceType=workspace&resourceId=WORKSPACE_ID'
+$TFY_API_SH GET /api/svc/v1/authorize/workspace/WORKSPACE_ID
 ```
 
 </instructions>

@@ -44,7 +44,7 @@ tfy_tracing_list_projects()
 TFY_API_SH=~/.claude/skills/truefoundry-tracing/scripts/tfy-api.sh
 
 # List tracing projects
-$TFY_API_SH GET /api/ml/v1/tracing-projects
+$TFY_API_SH GET /api/svc/v1/tracing-projects
 ```
 
 ### Create a New Project
@@ -58,8 +58,8 @@ tfy_tracing_create_project(name="my-tracing-project")
 
 #### Via Direct API
 ```bash
-# Create tracing project
-$TFY_API_SH POST /api/ml/v1/tracing-projects '{"name": "my-tracing-project"}'
+# Create or update tracing project
+$TFY_API_SH PUT /api/svc/v1/tracing-projects '{"name": "my-tracing-project"}'
 ```
 
 Save the returned project `id` for the next step.
@@ -75,11 +75,9 @@ tfy_tracing_create_application(project_id="PROJECT_ID", name="my-app")
 
 #### Via Direct API
 ```bash
-# Create application under project
-$TFY_API_SH POST /api/ml/v1/tracing-projects/PROJECT_ID/applications '{"name": "my-app"}'
+# Create tracing application
+$TFY_API_SH POST /api/svc/v1/tracing-applications '{"name": "my-app", "tracingProjectId": "PROJECT_ID"}'
 ```
-
-> **Fallback**: If any of these API endpoints return 404, the tracing API may have changed. Direct the user to create the tracing project via the TrueFoundry UI at `$TFY_BASE_URL` → Tracing section, then return here with the project FQN.
 
 ## Step 3: Detect Application Type
 
