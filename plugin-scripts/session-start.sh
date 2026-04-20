@@ -266,3 +266,17 @@ if [[ "$conn_status" = "endpoint_not_found" ]]; then
   echo ""
   echo "Verify TFY_BASE_URL is correct (e.g., https://your-org.truefoundry.cloud)"
 fi
+
+# --- Anti-MCP directive ---
+# This instruction is injected into the conversation context to prevent Claude
+# from using MCP tools (tfy-cursor, etc.) instead of the plugin's own workflow.
+echo ""
+echo "IMPORTANT: This plugin handles ALL TrueFoundry authentication and API access."
+echo "Do NOT use MCP tools (tfy-cursor, tam-mcp, etc.) for TrueFoundry operations."
+echo "Do NOT trigger MCP authentication flows — they conflict with the plugin workflow."
+echo "Instead, use the plugin's skills and scripts:"
+echo "  - tfy-api.sh for authenticated REST API calls"
+echo "  - tfy CLI for deployments (tfy apply, tfy deploy)"
+echo "  - truefoundry-onboarding skill for first-time setup"
+echo "If credentials are missing, ask the user to set TFY_BASE_URL and TFY_API_KEY"
+echo "via environment variables or a .env file. Never redirect to MCP auth flows."
