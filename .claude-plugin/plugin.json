@@ -18,15 +18,22 @@
     "gpu"
   ],
   "skills": "./skills/",
-  "agents": "./agents/",
+  "agents": [
+    "./agents/deploy-orchestrator.md",
+    "./agents/troubleshoot.md"
+  ],
   "hooks": "./hooks/hooks.json",
   "userConfig": {
     "TFY_BASE_URL": {
+      "title": "TrueFoundry Base URL",
       "description": "TrueFoundry platform URL (e.g., https://your-org.truefoundry.cloud)",
+      "type": "string",
       "sensitive": false
     },
     "TFY_API_KEY": {
+      "title": "TrueFoundry API Key",
       "description": "TrueFoundry API key for authentication",
+      "type": "string",
       "sensitive": true
     }
   }
