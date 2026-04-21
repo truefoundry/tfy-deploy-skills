@@ -17,7 +17,6 @@
     "llm",
     "gpu"
   ],
-  "skills": "./skills/",
   "agents": [
     "./agents/deploy-orchestrator.md",
     "./agents/troubleshoot.md"
