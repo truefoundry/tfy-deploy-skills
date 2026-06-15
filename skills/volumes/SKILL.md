@@ -64,7 +64,8 @@ Help the user choose the right storage type:
 
 1. **Credentials** -- `TFY_BASE_URL` and `TFY_API_KEY` must be set (env or `.env`)
 2. **Workspace** -- `TFY_WORKSPACE_FQN` required. **Never auto-pick. Ask the user if missing.** Volumes are workspace-scoped: a volume created in one workspace can only be used by applications in that same workspace.
-3. **Cluster storage class** -- The target cluster must have a storage provisioner configured for the desired storage class.
+3. **Storage class — discover, do not assume.** Run `GET /api/svc/v1/clusters/$CLUSTER_ID` via `tfy-api.sh` and present the cluster's supported storage classes to the user; do not silently default to anything. (Do **not** shell out to `kubectl get storageclass` — blocked by the no-kubectl hook.) `storage_class` is required by the manifest schema; missing it produces a validation error, not a silent default.
+4. **Access mode — pick at creation, immutable later.** Decide RWO vs RWX before applying; it cannot be changed without delete + recreate. See "Critical: Access Modes and Multi-Pod Mounts" below.
 
 For credential check commands and .env setup, see `references/prerequisites.md`.
 
@@ -72,12 +73,29 @@ For credential check commands and .env setup, see `references/prerequisites.md`.
 
 ### Dynamic Volumes (Create New)
 
-TrueFoundry provisions a new Kubernetes PersistentVolumeClaim (PVC). You specify size and storage class; the cluster allocator handles the rest.
+TrueFoundry provisions a new Kubernetes PersistentVolumeClaim (PVC). You specify size, access mode, and storage class; the cluster allocator handles the rest.
 
 **Key properties:**
-- Size is expandable after creation but **cannot be reduced**
-- Access mode is `ReadWriteMany` (multiple pods can mount simultaneously)
-- Reclaim policy is `Retain` (data persists even if the volume resource is deleted from TrueFoundry)
+- Size is expandable after creation but **cannot be reduced** (no CSI driver supports shrink on the major clouds).
+- Access mode is **whatever you set in the manifest** — it is NOT auto-RWX. Pick `ReadWriteOnce` (single-node) for single-pod workloads and `ReadWriteMany` (multi-node shared) for genuinely shared data. The storage class must support the chosen mode (e.g., EFS for RWX on AWS, Filestore for RWX on GCP, Azure Files for RWX on Azure). See "Critical: Access Modes and Multi-Pod Mounts" below.
+- Reclaim policy is `Retain` (data persists even if the volume resource is deleted from TrueFoundry), but cloud-side cleanup is cloud-specific — see "Deleting a Volume" below.
+
+## Critical: Access Modes and Multi-Pod Mounts
+
+| Your intent | Access mode | Storage class | Cloud examples |
+|---|---|---|---|
+| **One pod only** (e.g., single Postgres pod) | `ReadWriteOnce` (RWO) | Block-storage default | AWS `gp3`, Azure `managed-premium`, GCP `standard-rwo` |
+| **Multiple pods on the same node** | `ReadWriteOnce` (RWO) | Block-storage default | Works if pod affinity keeps them co-located |
+| **Multiple pods, different nodes** (genuinely shared data) | `ReadWriteMany` (RWX) | Network FS class | AWS `efs-sc`, Azure `azurefile`/`azurefile-premium`, GCP `standard-rwx`/`premium-rwx` |
+
+**Common pitfall (seen in multiple sessions):** create an RWO volume, mount it from a service AND a job that's expected to run separately. Pod 2 will hang in `Pending` indefinitely waiting for pod 1 to release the volume — there's no helpful error, just silence. Either:
+1. Pick `ReadWriteMany` and a network-FS storage class up front, OR
+2. Keep RWO and add pod affinity so both pods land on the same node, OR
+3. Use two separate volumes (one per pod).
+
+**Ask the user up front:** "Will multiple pods on different nodes ever mount this volume at the same time?" If yes → RWX. If no → RWO is fine and cheaper.
+
+See `references/volumes-vs-helm.md` for the decision between a TrueFoundry volume vs letting a Helm chart manage its own PVC.
 
 ### Static Volumes (Use Existing)
 
@@ -341,6 +359,40 @@ cache_volume:
   storage_class: efs-sc
 ```
 
+## Updating a Volume
+
+Only `size` is safely updatable, and only upwards.
+
+| Field | Updatable? | Effect |
+|---|---|---|
+| `size` (grow) | Yes | Platform expands the underlying PVC online; no downtime; data preserved. |
+| `size` (shrink) | No | No major cloud's CSI driver supports shrink. Back up, recreate smaller, restore. |
+| `access_mode` | No | Requires delete + recreate. Plan the access mode at creation time. |
+| `storage_class` | No | Requires delete + recreate. |
+
+To grow:
+
+```bash
+# Edit the manifest: bump size from "100Gi" to e.g. "200Gi"
+tfy apply -f volume.yaml
+```
+
+Re-applying with a smaller `size` will fail validation. Re-applying with a different `access_mode` or `storage_class` is a structural change the platform will reject; you must delete (via dashboard) and recreate.
+
+## Deleting a Volume
+
+**Volume deletion via this plugin is blocked by `block-delete-operations.sh`.** Always redirect the user to the TrueFoundry dashboard (Volumes → ⋮ → Delete). Before they click, surface the cloud-specific consequence so they don't lose data unintentionally:
+
+| Cloud | Behavior on delete | Recoverable? |
+|---|---|---|
+| AWS (EBS, EFS) | Immediate deletion | No — only via snapshot |
+| Azure (Managed Disk, Files) | Soft-delete 7–90 days (tenant config) | Yes within the window, via Azure portal |
+| GCP (Persistent Disk, Filestore) | Immediate deletion | No — only via snapshot |
+
+Recommend a backup before deletion: a snapshot in the cloud console, or a `pg_dump`-style backup job for databases. The platform does not auto-snapshot before delete.
+
+If the user is asking how to delete a volume because they have an orphan PVC from a previous Helm chart (a PVC that doesn't appear in the dashboard), see `references/volumes-vs-helm.md` → "Orphaned PVC recovery" — that case requires the platform admin, not the volumes skill.
+
 ## Volume Sizing Guidelines
 
 | Use Case | Recommended Size | Notes |
@@ -405,7 +457,9 @@ For Volume Browser configuration fields, setup steps, and access instructions, s
 | Size cannot be reduced | PVC limitation | Create new smaller volume and migrate data |
 | Workspace mismatch | Volume in different workspace | Create volume in same workspace as the app |
 | Permission denied | API key lacks access | Check API key permissions for this workspace |
-| PV not found (static) | K8s PV doesn't exist | Verify with `kubectl get pv <pv-name>` |
+| PV not found (static) | K8s PV doesn't exist or wasn't pre-created by the platform admin | Ask the platform admin to confirm the PV was created with the exact name. The volumes skill cannot list PVs directly (no-kubectl rule); use the dashboard or platform admin tooling. |
+| Volume stuck `Pending` after attaching to a 2nd pod | RWO volume mounted from another node | Check the volume's `access_mode`. RWO supports one node at a time. Either change to RWX + RWX-capable storage class (delete + recreate), or add pod affinity to co-locate. See "Multi-Pod Mounts" above. |
+| Orphan PVC visible in cluster, not in TFY dashboard | PVC was created by a Helm chart's StatefulSet, not by `truefoundry-volumes` | See `references/volumes-vs-helm.md` → "Orphaned PVC recovery". Cleanup requires the platform admin. |
 | Data corruption | Multiple pods writing same path | Use per-pod sub-directories (e.g., `/data/pod-{POD_NAME}/`) |
 
 </troubleshooting>

@@ -49,13 +49,13 @@ AGENTS_GLOBAL=(
 
 # All skill source directories in this repo.
 SKILL_NAMES=(
-  access-control access-tokens docs logs monitor onboarding secrets status
+  access-control access-tokens docs logs monitor onboarding secrets skill-sync status
   applications deploy gitops helm jobs llm-deploy ml-repos notebooks service-test ssh-server tracing volumes workflows workspaces
 )
 
 # Shared files (relative to _shared/ in source)
 SHARED_SCRIPTS=( "scripts/tfy-api.sh" "scripts/tfy-version.sh" )
-SHARED_REFS=( "references/api-endpoints.md" "references/container-versions.md" "references/prerequisites.md" "references/tfy-api-setup.md" "references/gpu-reference.md" "references/cluster-discovery.md" "references/health-probes.md" "references/resource-estimation.md" "references/rest-api-manifest.md" "references/manifest-schema.md" "references/manifest-defaults.md" "references/cli-fallback.md" "references/no-kubectl.md" "references/cli-version-compat.md" )
+SHARED_REFS=( "references/api-endpoints.md" "references/container-versions.md" "references/prerequisites.md" "references/tfy-api-setup.md" "references/gpu-reference.md" "references/cluster-discovery.md" "references/health-probes.md" "references/resource-estimation.md" "references/rest-api-manifest.md" "references/manifest-schema.md" "references/manifest-defaults.md" "references/cli-fallback.md" "references/no-kubectl.md" "references/cli-version-compat.md" "references/volumes-vs-helm.md" )
 
 # ── Parse args ───────────────────────────────────────────────────────────────
 MODE=""            # "" = auto (global + local if applicable), "global", "local"

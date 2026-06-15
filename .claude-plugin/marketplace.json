@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "truefoundry",
-      "description": "Full TrueFoundry plugin with deploy orchestrator, troubleshoot agent, hooks (credential bootstrap, delete blocking, secret scanning, deploy monitoring, stop gate), and 22 deployment skills",
+      "description": "Full TrueFoundry plugin with deploy orchestrator, troubleshoot agent, hooks (credential bootstrap, delete blocking, kubectl blocking, secret scanning, deploy monitoring, stop gate), and 23 deployment skills (incl. skill-sync meta-skill)",
       "source": "./",
       "strict": false,
       "skills": [
@@ -31,6 +31,7 @@
         "./skills/onboarding",
         "./skills/secrets",
         "./skills/service-test",
+        "./skills/skill-sync",
         "./skills/ssh-server",
         "./skills/status",
         "./skills/tracing",

@@ -1,0 +1,51 @@
+name: skill-sync
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"   # Mondays 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run without opening a PR (prints drift to the action log)."
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: skill-sync
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq jq shellcheck
+          # gh is preinstalled on ubuntu-latest runners
+
+      - name: Configure git identity
+        run: |
+          git config user.name "truefoundry-skill-sync[bot]"
+          git config user.email "skill-sync@users.noreply.github.com"
+
+      - name: Run skill-sync (dry run)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+        env:
+          DRY_RUN: "1"
+        run: bash skills/skill-sync/scripts/run-sync.sh
+
+      - name: Run skill-sync (full)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash skills/skill-sync/scripts/run-sync.sh

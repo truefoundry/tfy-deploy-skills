@@ -469,12 +469,61 @@ Persistent volume for data storage shared across services.
 |-------|------|----------|---------|-------------|
 | `name` | string | Yes | -- | Volume name. Lowercase alphanumeric and hyphens only. |
 | `type` | string | Yes | -- | Must be `volume` |
-| `size` | string | Yes | -- | Volume size (e.g., `"10Gi"`, `"100Gi"`) |
-| `access_mode` | string | No | `ReadWriteOnce` | `ReadWriteOnce`, `ReadWriteMany`, or `ReadOnlyMany` |
-| `storage_class` | string | No | -- | Kubernetes storage class. Cluster-specific. |
+| `size` | string | Yes | -- | Volume size (e.g., `"10Gi"`, `"100Gi"`). Expandable, never shrinkable. |
+| `access_mode` | string | Yes | -- | `ReadWriteOnce` (RWO — single node), `ReadWriteMany` (RWX — multi-node), or `ReadOnlyMany`. **Must match how you plan to mount the volume.** See [Access Modes and Multi-Pod Mounts](#access-modes-and-multi-pod-mounts) below. |
+| `storage_class` | string | Yes | -- | Storage class. **Always specify explicitly — relying on the cluster default is brittle.** The available classes are cloud-specific; discover them via `GET /api/svc/v1/clusters/$CLUSTER_ID` (look for `data.manifest.supported_storage_classes`), not via `kubectl`. See [Storage Class Discovery](#storage-class-discovery) below. |
 | `workspace_fqn` | string | Yes | -- | Workspace FQN. |
 
 > **Do NOT add a top-level `config` field to a volume manifest.** Including one will fail with `must match exactly one schema in oneOf`. The `config` key only appears nested under [`mounts[]`](#mounts) on a service/job manifest (e.g., `mounts: [{type: volume, name: shared-data, mount_path: /data}]`).
+
+### Access Modes and Multi-Pod Mounts
+
+A volume's `access_mode` must match how many pods will mount it concurrently, and the storage class must support that mode. Choosing wrong fails late — typically with a PVC stuck in `Pending` while the second pod waits indefinitely.
+
+| Your intent | `access_mode` | Storage class family | Cloud examples |
+|---|---|---|---|
+| Single pod (e.g., one Postgres, one SSH dev box) | `ReadWriteOnce` (RWO) | Block storage default | AWS `gp3`, Azure `managed-premium`, GCP `standard-rwo` |
+| Multiple pods on the **same node** (sibling containers) | `ReadWriteOnce` (RWO) | Block storage default | Same as above; requires pod affinity |
+| Multiple pods across **different nodes** (shared dataset, model weights) | `ReadWriteMany` (RWX) | Network file system | AWS EFS (`efs-sc`), Azure Files (`azurefile`/`azurefile-premium`), GCP Filestore (`standard-rwx`/`premium-rwx`) |
+
+**The single most common failure** is creating an `RWO` volume and then mounting it from both a service (one pod) and a job (separate pod) — the job pod hangs in `Pending` until either the service scales down or someone realizes RWX was needed all along. If multiple deployments will share the same volume, choose RWX up front.
+
+### Storage Class Discovery
+
+Use the cluster discovery API — do not shell out to `kubectl get storageclass`. The skills' `no-kubectl` policy applies here too.
+
+```bash
+TFY_API_SH=~/.claude/skills/truefoundry-volumes/scripts/tfy-api.sh
+CLUSTER_ID=$(echo "$TFY_WORKSPACE_FQN" | cut -d: -f1)
+bash "$TFY_API_SH" GET "/api/svc/v1/clusters/$CLUSTER_ID"
+# → look at data.manifest.supported_storage_classes (or equivalent field)
+```
+
+If the API doesn't list a storage class for your access mode, ask the user / platform admin — do not guess defaults.
+
+### Updating a Volume
+
+Only two fields are safely updatable:
+
+| Field | Updatable? | Effect |
+|---|---|---|
+| `size` (grow only) | Yes | Platform expands the underlying PVC online; no downtime; existing data preserved. Shrinking is **not supported** by any major cloud's CSI driver. |
+| `access_mode` | No | Requires delete + recreate. Data is lost unless the storage class's reclaim policy is `Retain` (TrueFoundry uses `Retain` by default, but verify). |
+| `storage_class` | No | Requires delete + recreate. |
+
+To grow a volume: bump `size:` in the manifest and `tfy apply -f volume.yaml` again. To change `access_mode` or `storage_class`: back up the data, delete the volume via the dashboard (the plugin's delete-block hook forbids API-side delete), recreate, restore.
+
+### Deleting a Volume
+
+**Volume deletion is forbidden by the plugin's `block-delete-operations` hook.** Direct the user to the TrueFoundry dashboard (Volumes → ⋮ → Delete). Before they click, surface the cloud-specific consequence:
+
+| Cloud | Behavior on delete |
+|---|---|
+| AWS (EBS / EFS) | Immediate deletion. Not recoverable unless you have a snapshot. |
+| Azure (Managed Disk / Files) | **Soft-delete for 7–90 days** (depends on tenant config). Recoverable via the Azure portal until purged. |
+| GCP (Persistent Disk / Filestore) | Immediate deletion. Not recoverable unless you have a snapshot. |
+
+Always recommend a backup (snapshot or a `pg_dump`-style job) before any delete.
 
 ### Minimal Example
 
@@ -1059,18 +1108,24 @@ Mount volumes or secrets into the container.
 | `type` | string | Yes | Mount type: `volume`, `secret`, `config_map` |
 | `mount_path` | string | Yes | Path inside the container |
 | `name` | string | Yes | Name of the volume, secret, or config map to mount |
-| `read_only` | bool | No | Whether to mount read-only (default: `false`) |
+| `read_only` | bool | No | Whether to mount the filesystem **read-only to the container** (default: `false`). This is a filesystem flag, not an isolation mechanism. It does NOT prevent other pods from mounting the same volume read-write — for that you need a single-mount access mode (`ReadWriteOnce`) plus pod affinity. |
+
+> **`read_only` semantics:** sets the filesystem flag on the in-container mount. Use `true` for secrets, immutable config, and read-only model caches; use `false` (default) when the container needs to write. Do not use `read_only: true` to "isolate" the volume from other pods — that's a misconception that costs an hour of debugging when a sibling job can't write.
 
 ```yaml
 mounts:
   - type: volume
     name: shared-data
     mount_path: /data
-    read_only: false
+    read_only: false                  # container writes here
   - type: secret
     name: my-secret-group
     mount_path: /secrets
-    read_only: true
+    read_only: true                   # secrets are immutable in-pod; keep read-only
+  - type: volume
+    name: model-cache
+    mount_path: /models
+    read_only: true                   # cached model weights — written by a separate job, read here
 ```
 
 ### Capacity Type (Node Affinity)

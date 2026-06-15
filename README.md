@@ -32,7 +32,7 @@ Add the marketplace and install the plugin:
 Or interactively: `/plugin` → **Discover** tab → select **truefoundry** → **Install now**.
 
 What you get:
-- 22 skills loaded automatically
+- 23 skills loaded automatically (22 deploy/operate/manage skills + 1 `skill-sync` meta-skill)
 - 2 specialized agents (deploy orchestrator, troubleshoot)
 - 5 hooks enforcing safe deployment workflows
 - Automatic credential checks on session start
@@ -63,7 +63,7 @@ npx skills add truefoundry/tfy-deploy-skills -g -a cursor -s '*' -y
 ```
 
 What you get:
-- 22 skills as context rules
+- 23 skills as context rules (22 deploy/operate/manage + 1 `skill-sync` meta-skill)
 - No hook enforcement (Cursor does not support hooks)
 - Skills provide guidance but cannot block unsafe operations
 
@@ -94,13 +94,14 @@ Just ask your agent in plain English:
 
 ## What's Included
 
-### 22 Skills
+### 23 Skills
 
 | Category | Skills |
 |----------|--------|
 | **Deploy** | [applications](skills/applications), [deploy](skills/deploy), [gitops](skills/gitops), [helm](skills/helm), [jobs](skills/jobs), [llm-deploy](skills/llm-deploy), [ml-repos](skills/ml-repos), [notebooks](skills/notebooks), [service-test](skills/service-test), [ssh-server](skills/ssh-server), [tracing](skills/tracing), [volumes](skills/volumes), [workflows](skills/workflows), [workspaces](skills/workspaces) |
 | **Operate** | [logs](skills/logs), [monitor](skills/monitor), [status](skills/status) |
 | **Manage** | [access-control](skills/access-control), [access-tokens](skills/access-tokens), [docs](skills/docs), [onboarding](skills/onboarding), [secrets](skills/secrets) |
+| **Meta** | [skill-sync](skills/skill-sync) — keeps the 22 deploy/operate/manage skills aligned with the platform OpenAPI spec, public docs, and recent session transcripts. Runs weekly via GitHub Actions; opens a PR, never auto-merges. Explicit-only invocation. |
 
 Installed skill names are namespaced as `truefoundry-<skill>` (e.g., `truefoundry-deploy`).
 

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Repository: `truefoundry/tfy-deploy-skills`
 
-A collection of 22 AI agent skills (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format, plus a Claude Code plugin with hooks, agents, and deployment enforcement. This is a content/tooling repo — no application servers, databases, or Docker containers.
+A collection of 23 AI agent skills (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format, plus a Claude Code plugin with hooks, agents, and deployment enforcement. 22 skills cover deploy/monitor/manage workflows; a 23rd `skill-sync` meta-skill keeps the others aligned with the platform's OpenAPI spec, public docs, and recent session transcripts. This is a content/tooling repo — no application servers, databases, or Docker containers.
 
 Plugin install (Claude Code): `/plugin marketplace add truefoundry/tfy-deploy-skills` then `/plugin install truefoundry@truefoundry-deploy-skills`
 Standalone skills: `npx skills add truefoundry/tfy-deploy-skills --all`
@@ -31,7 +31,7 @@ Tests require `python3` and `curl` (mock HTTP server on ephemeral port, fully of
 ## Architecture
 
 ### Skill layout
-Each of the 22 skills lives in `skills/{name}/SKILL.md` with YAML frontmatter (name, description, allowed-tools). Shared scripts and references live in `skills/_shared/` and are synced to individual skill directories via `./scripts/sync-shared.sh`.
+Each of the 23 skills lives in `skills/{name}/SKILL.md` with YAML frontmatter (name, description, allowed-tools). Shared scripts and references live in `skills/_shared/` and are synced to individual skill directories via `./scripts/sync-shared.sh`.
 
 ### Plugin layout
 The Claude Code plugin lives in `.claude-plugin/` (plugin.json + marketplace.json). Hook definitions in `hooks/hooks.json`, hook implementations in `plugin-scripts/`, agents in `agents/`. Codex equivalents: `.codex-plugin/plugin.json`, `.codex/hooks.json`, `AGENTS.md`.
@@ -42,7 +42,10 @@ The Claude Code plugin lives in `.claude-plugin/` (plugin.json + marketplace.jso
 - `skills/_shared/references/` — 13 shared markdown reference docs included by skills
 
 ### Explicit-only skills
-Three skills have `disable-model-invocation: "true"` and require explicit user intent: **deploy**, **helm**, **llm-deploy**. If CLAUDE.md is tracked in git, `validate-skills.sh` checks that these three skill names appear in it.
+Four skills have `disable-model-invocation: "true"` and require explicit user intent: **deploy**, **helm**, **llm-deploy**, **skill-sync**. If CLAUDE.md is tracked in git, `validate-skills.sh` checks that these four skill names appear in it.
+
+### Skill-sync meta-skill
+`skill-sync` is a self-update flow for this repo (not a deploy skill). It fetches the TrueFoundry OpenAPI spec, crawls a known list of docs pages, mines recent Claude session transcripts under `~/.claude/projects/`, classifies candidate edits by confidence tier, and opens a PR. It never auto-merges. A weekly GitHub Actions cron at `.github/workflows/skill-sync.yml` runs it on Mondays. See `skills/skill-sync/SKILL.md`.
 
 ## Critical Rules
 

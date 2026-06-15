@@ -87,7 +87,7 @@ done < <(find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md | sort)
 echo "Validating disable-model-invocation policy..."
 
 # Canonical explicit-only skills for this repository.
-expected_disabled="$(printf '%s\n' deploy helm llm-deploy | sort | paste -sd' ' -)"
+expected_disabled="$(printf '%s\n' deploy helm llm-deploy skill-sync | sort | paste -sd' ' -)"
 
 actual_disabled="$({
   for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
