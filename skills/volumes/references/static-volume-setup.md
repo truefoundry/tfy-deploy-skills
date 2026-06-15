@@ -40,4 +40,14 @@ For mounting pre-existing cloud storage as Kubernetes PersistentVolumes.
 
 ## Important Notes
 
-Static volume setup requires Kubernetes cluster access. If the user does not have cluster admin permissions, direct them to their platform administrator.
+Static volume setup requires Kubernetes cluster access. If the user does not have cluster admin permissions, direct them to their platform administrator. The volumes skill **does not shell out to `kubectl`** — the no-kubectl rule applies. PV creation is a platform-admin operation, not an agent operation.
+
+## Orphan PVCs (from previous Helm charts)
+
+If the user has a PVC visible in the cluster but **not** in the TrueFoundry dashboard (typical after uninstalling a Helm chart that created its own PVC via a StatefulSet template), see `references/volumes-vs-helm.md` → "Orphaned PVC recovery". Short version:
+
+1. Confirm via the platform: `bash "$TFY_API_SH" GET "/api/svc/v1/apps?workspaceFqn=$TFY_WORKSPACE_FQN&applicationType=volume"`. If the orphan is not in the response, the platform doesn't manage it.
+2. Direct the user to the platform admin to clean up — cluster-admin is required and the agent does not have it.
+3. Do NOT suggest `kubectl delete pvc` even as a one-off; the plugin's `block-kubectl` hook will reject it and the action would bypass platform audit anyway.
+
+To avoid creating orphans in the first place, prefer the "TrueFoundry volume + Helm chart's `existingClaim`" pattern documented in `references/volumes-vs-helm.md`.

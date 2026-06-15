@@ -1,12 +1,12 @@
 # TrueFoundry Agents
 
-A collection of 22 AI coding-agent skill definitions (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format. Skills let AI assistants deploy, monitor, and manage ML infrastructure on TrueFoundry.
+A collection of 23 AI coding-agent skill definitions (markdown + shell scripts) following the [Agent Skills](https://agentskills.io) open format. 22 skills let AI assistants deploy, monitor, and manage ML infrastructure on TrueFoundry; a 23rd `skill-sync` meta-skill maintains them against the platform's OpenAPI spec and docs.
 
 ## Repository Overview
 
 This is a **content/tooling repository** -- there are no application servers, databases, or Docker containers. The codebase consists of:
 
-- **skills/** -- 22 skill directories (e.g. `deploy`, `helm`, `llm-deploy`, `logs`, `status`, etc.) each containing a `SKILL.md` frontmatter file, plus `_shared/` with canonical scripts and references synced to all skills.
+- **skills/** -- 23 skill directories (e.g. `deploy`, `helm`, `llm-deploy`, `skill-sync`, `logs`, `status`, etc.) each containing a `SKILL.md` frontmatter file, plus `_shared/` with canonical scripts and references synced to all skills.
 - **scripts/** -- development and CI tooling (validation, sync, install, tests).
 - **hooks/** -- Claude Code hook definitions (`hooks.json`), auto-approve hook, and git pre-push hook.
 - **plugin-scripts/** -- hook implementations (session-start, block-delete, secret-scan, deploy-monitor, verification gate).
@@ -28,11 +28,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full development workflow.
 
 ### Explicit-Only Skills
 
-The `deploy`, `helm`, and `llm-deploy` skills have `disable-model-invocation: true` and require explicit user intent.
+The `deploy`, `helm`, `llm-deploy`, and `skill-sync` skills have `disable-model-invocation: true` and require explicit user intent. `skill-sync` is a meta-skill that updates the other 22 skills against the platform OpenAPI/docs; it never runs implicitly.
 
 ### Gotchas
 
-- **`validate-skills.sh` checks docs consistency**: if `AGENTS.md` or `CLAUDE.md` are tracked in git, they must mention the explicit-only skills (`deploy`, `helm`, `llm-deploy`). If you create or modify these files, ensure those skill names appear.
+- **`validate-skills.sh` checks docs consistency**: if `AGENTS.md` or `CLAUDE.md` are tracked in git, they must mention the explicit-only skills (`deploy`, `helm`, `llm-deploy`, `skill-sync`). If you create or modify these files, ensure those skill names appear.
 - **Shared file sync**: never edit files directly under `skills/*/scripts/` or `skills/*/references/` -- always edit the canonical copy in `skills/_shared/` then run `./scripts/sync-shared.sh`.
 - **Pre-push hook**: run `./scripts/setup-git-hooks.sh` once to enable automatic validation before every `git push`.
 - **`test-tfy-api.sh`** spins up a Python 3 mock HTTP server on an ephemeral port. It requires `python3` and `curl`.

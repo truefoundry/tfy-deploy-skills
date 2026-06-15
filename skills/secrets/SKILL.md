@@ -6,6 +6,8 @@ compatibility: Requires Bash, curl, and access to a TrueFoundry instance
 allowed-tools: Bash(*/tfy-api.sh *)
 ---
 
+> **HARD RULE — no `kubectl` / `helm` CLI / `argocd`.** Use only TrueFoundry skills and APIs. See [`references/no-kubectl.md`](references/no-kubectl.md) for the intent→skill mapping. Cluster-level commands are blocked by the plugin's PreToolUse hook.
+>
 > Routing note: For ambiguous user intents, use the shared clarification templates in [references/intent-clarification.md](references/intent-clarification.md).
 
 <objective>
@@ -78,6 +80,38 @@ Secret Groups:
 > - Never ask the user to paste secret values in chat.
 > - Always instruct the user to store secret values in environment variables first, then reference those variables.
 > - If the user provides a raw secret value directly, warn them and suggest using an env var instead.
+
+### Via `tfy apply` Manifest (Declarative — Recommended for git-tracked state)
+
+For state managed alongside service manifests in git, define the secret group declaratively and apply with `tfy apply -f secret-group.yaml`. **`integration_fqn` and `collaborators` are required by `tfy apply`** — missing either field fails with `must have required property '<name>'`. See [`references/manifest-schema.md`](references/manifest-schema.md) section "Secret Group" for the full schema.
+
+```yaml
+# secret-group.yaml
+name: my-app-secrets
+type: secret-group
+integration_fqn: "secret-store:my-org:aws-secrets-manager"
+workspace_fqn: cluster-id:workspace-name
+collaborators:
+  - subject: "user:alice@example.com"
+    role_id: admin
+secrets:
+  - key: DB_PASSWORD
+    value: ${DB_PASSWORD}
+  - key: API_KEY
+    value: ${API_KEY}
+```
+
+```bash
+# Set env vars first; never paste raw secrets into the file.
+export DB_PASSWORD=...
+export API_KEY=...
+
+# tfy apply substitutes ${VAR} from the calling shell.
+# IMPORTANT: tfy apply DOES NOT accept stdin (`-f -`). Always pass a file path.
+tfy apply -f secret-group.yaml
+```
+
+To discover `integration_fqn` values, see "Finding the Integration ID" below.
 
 ### Via Tool Call
 

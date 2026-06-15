@@ -8,6 +8,8 @@ metadata:
 allowed-tools: Bash(tfy*) Bash(*/tfy-api.sh *) Bash(*/tfy-version.sh *) Bash(docker *) Bash(tfy deploy*) Bash(curl *)
 ---
 
+> **HARD RULE — no `kubectl` / `helm` CLI / `argocd`.** Use only TrueFoundry skills and APIs. See [`references/no-kubectl.md`](references/no-kubectl.md) for the intent→skill mapping. Cluster-level commands are blocked by the plugin's PreToolUse hook.
+>
 > Routing note: For ambiguous user intents, use the shared clarification templates in [references/intent-clarification.md](references/intent-clarification.md).
 
 # Deploy to TrueFoundry
@@ -62,7 +64,7 @@ ls tfy-manifest.yaml truefoundry.yaml 2>/dev/null
 
 - `TFY_BASE_URL` and `TFY_API_KEY` must be set (env or `.env`).
 - **`TFY_HOST` must be set before any `tfy` CLI command.** The export above handles this automatically.
-- `TFY_WORKSPACE_FQN` required. **HARD RULE: Never auto-pick a workspace. Always ask the user to confirm, even if only one workspace exists or a preference is saved.** See `references/prerequisites.md` for the full workspace confirmation flow.
+- `TFY_WORKSPACE_FQN` required. **HARD RULE: Never auto-pick a workspace. Always ask the user to confirm, even if only one workspace exists or a preference is saved.** See `references/prerequisites.md` → "Workspace Confirmation Gate" for the mandatory 6-step flow. **No manifest field, `--workspace_fqn` flag, or `workspaceFqn` query param may be filled in until the gate completes.**
 - For full credential setup, see `references/prerequisites.md`.
 
 > **WARNING:** Never use `source .env`. The `tfy-api.sh` script handles `.env` parsing automatically. For shell access: `grep KEY .env | cut -d= -f2-`
@@ -70,6 +72,8 @@ ls tfy-manifest.yaml truefoundry.yaml 2>/dev/null
 ## CRITICAL: `tfy apply` vs `tfy deploy`
 
 > **HARD RULE: `tfy apply` does NOT support `build_source.type: local`.** If the manifest has a local build source, you MUST use `tfy deploy -f <manifest>`. Using `tfy apply` with a local build source will fail with: `must match exactly one schema in oneOf`.
+
+> **HARD RULE: `tfy apply` does NOT accept stdin.** `tfy apply -f -` fails with `File '-' does not exist`. Always pass a real file path. If you constructed a manifest on the fly, write it to a tempfile (e.g., `mktemp --suffix .yaml`) and apply that. See [`references/cli-version-compat.md`](references/cli-version-compat.md) for the tempfile pattern.
 
 | Scenario | Command | Works? |
 |----------|---------|--------|
