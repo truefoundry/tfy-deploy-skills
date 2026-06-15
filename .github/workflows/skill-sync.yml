@@ -1,8 +1,9 @@
 name: skill-sync
 
+# HARD RULE: manual invocation ONLY. No `schedule:` trigger.
+# skill-sync rewrites docs in this repo; it must never run without a human
+# explicitly starting it. To run: GitHub Actions tab → skill-sync → "Run workflow".
 on:
-  schedule:
-    - cron: "0 9 * * 1"   # Mondays 09:00 UTC
   workflow_dispatch:
     inputs:
       dry_run:

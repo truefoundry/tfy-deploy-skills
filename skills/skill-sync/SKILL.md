@@ -1,6 +1,6 @@
 ---
 name: truefoundry-skill-sync
-description: Self-update flow for this deploy-skills repo. Diffs the skills against three sources of truth (the TrueFoundry OpenAPI spec, the public docs site, and recent Claude session transcripts), classifies each candidate change by confidence, applies safe edits (typos, new enum values, new endpoints), and proposes risky edits in a pull request for human review. Use ONLY when explicitly asked to "sync skills", "update skills from docs", "run skill-sync", or via the scheduled GitHub Actions cron.
+description: Self-update flow for this deploy-skills repo. Diffs the skills against three sources of truth (the TrueFoundry OpenAPI spec, the public docs site, and recent Claude session transcripts), classifies each candidate change by confidence, applies safe edits (typos, new enum values, new endpoints), and proposes risky edits in a pull request for human review. **Manual invocation ONLY** — never runs on a schedule. Use ONLY when a human explicitly asks to "sync skills", "update skills from docs", or "run skill-sync", or manually triggers the GitHub Actions workflow.
 license: MIT
 compatibility: Requires Bash, curl, jq, git, and a checkout of truefoundry/tfy-deploy-skills
 metadata:
@@ -23,8 +23,10 @@ The skills drift quietly: endpoints rename, new fields appear in the manifest sc
 ## When to Use
 
 - The user says "sync skills", "update skills from docs", "check for skill drift", or "run skill-sync".
-- A scheduled GitHub Actions cron triggers this skill weekly.
-- After a major TrueFoundry platform release, when the user wants the deploy-skills updated against the new API.
+- A maintainer manually triggers the GitHub Actions workflow from the Actions tab (`workflow_dispatch`). There is no cron — this skill is intentionally **never** invoked on a schedule.
+- After a major TrueFoundry platform release, when a maintainer wants the deploy-skills updated against the new API.
+
+> **Manual-invocation rule:** this skill rewrites docs and reference files in this repo. It MUST NOT run unattended. No cron, no PR auto-trigger, no scheduled workflow. Every run starts with a human clicking something.
 
 ## When NOT to Use
 
@@ -93,7 +95,7 @@ The detailed rules — including the per-file confidence table and the validator
 
 5. **Sync shared files.** After Tier 1 edits, run `./scripts/sync-shared.sh` so per-skill copies match `_shared/`.
 
-6. **Open or update the PR.** Branch name: `skill-sync/YYYY-MM-DD` (deterministic per UTC day so a re-run updates instead of duplicating). Title: `chore(skills): scheduled sync — YYYY-MM-DD`. Body: see `references/pr-template.md`.
+6. **Open or update the PR.** Branch name: `skill-sync/YYYY-MM-DD` (deterministic per UTC day so a re-run updates instead of duplicating). Title: `chore(skills): manual sync — YYYY-MM-DD`. Body: see `references/pr-template.md`.
 
 7. **Hands off.** This skill never merges. It never approves. The PR sits for human review.
 
@@ -137,13 +139,19 @@ Environment variables the run-sync script honors:
 | `MAX_CANDIDATES` | `100` | Abort the run if more candidates than this. |
 | `MAX_CHANGE_PERCENT` | `20` | Per-run diff cap (percent of skill content). |
 
-## Scheduled invocation
+## Manual GitHub Actions invocation
 
-A weekly cron lives at `.github/workflows/skill-sync.yml`. It runs every Monday at 09:00 UTC, executes the same `run-sync.sh`, and opens or updates the PR. The workflow uses a fine-scoped PAT (or `${{ secrets.GITHUB_TOKEN }}` if branch protection allows) — see `references/cron-setup.md`.
+`.github/workflows/skill-sync.yml` exposes a `workflow_dispatch` trigger so a maintainer can run the skill from the Actions tab without checking out the repo. There is **no `schedule:` block** — it never runs unattended. Inputs:
+
+- `dry_run` (boolean, default `false`) — when true, prints the drift report to the action log instead of opening a PR.
+
+To trigger: GitHub → Actions → `skill-sync` → "Run workflow" → choose `dry_run` → "Run workflow". The job uses the default `${{ secrets.GITHUB_TOKEN }}` to push the branch and open the PR; no extra secrets needed for the OpenAPI + docs sources (both unauthenticated).
+
+See `references/manual-invocation.md` for the full list of invocation paths and what each one is good for.
 
 ## How this skill is used by other skills
 
-It isn't, intentionally. This is the only skill in the repo with `disable-model-invocation: "true"` AND no composability links from other skills. It runs because the user explicitly asks, or because cron asks. That keeps it from being invoked accidentally mid-deploy.
+It isn't, intentionally. This is the only skill in the repo with `disable-model-invocation: "true"` AND no composability links from other skills. It runs only because a human explicitly asks — either through the chat or through the GitHub Actions "Run workflow" button. That keeps it from being invoked accidentally mid-deploy.
 
 ## Composability
 
@@ -171,7 +179,7 @@ It isn't, intentionally. This is the only skill in the repo with `disable-model-
 | `references/sync-sources.md` | Where each input comes from, fetch URLs, filter rules |
 | `references/confidence-rules.md` | Per-file confidence table; which signals upgrade or downgrade a candidate |
 | `references/pr-template.md` | The PR body template (Tier 1 / Tier 2 / Tier 3 sections) |
-| `references/cron-setup.md` | Notes on the GitHub Actions cron, required secrets, scope |
+| `references/manual-invocation.md` | The two ways to trigger this skill (local CLI, GitHub Actions `workflow_dispatch`); required secrets and scope |
 | `references/no-kubectl.md` | Shared no-kubectl policy |
 | `references/cli-version-compat.md` | Shared CLI compatibility doc |
 
@@ -191,9 +199,9 @@ That's success. The repo agrees with all three sources. Re-run with `DRY_RUN=1` 
 
 The script aborts before opening the PR and prints which source produced how many candidates. Investigate upstream — usually means a major release on the platform side. After investigating, re-run with `MAX_CANDIDATES=200` if you're confident.
 
-### Cron is opening PRs but nothing happens to them
+### "Why isn't this on a schedule?"
 
-Branch protection requires manual review/approval — that's by design. This skill never auto-merges.
+By design. This skill rewrites docs in this repo. Letting it run unattended means one upstream platform change could land in `main` (via Tier 1 auto-apply) before any human reads the proposed edit. Manual-only invocation forces a maintainer to be in the loop for every run.
 
 ### Session-mining can't find any transcripts
 
@@ -201,6 +209,6 @@ Set `SESSION_LOG_DIR` to point at the right path. On non-Claude-Code agents the 
 
 ### "GitHub token missing required scope"
 
-The PR-creation step needs `repo` scope (or `contents:write + pull-requests:write` if using a fine-grained PAT). See `references/cron-setup.md`.
+The PR-creation step needs `repo` scope (or `contents:write + pull-requests:write` if using a fine-grained PAT). See `references/manual-invocation.md`.
 
 </troubleshooting>

@@ -101,7 +101,7 @@ Just ask your agent in plain English:
 | **Deploy** | [applications](skills/applications), [deploy](skills/deploy), [gitops](skills/gitops), [helm](skills/helm), [jobs](skills/jobs), [llm-deploy](skills/llm-deploy), [ml-repos](skills/ml-repos), [notebooks](skills/notebooks), [service-test](skills/service-test), [ssh-server](skills/ssh-server), [tracing](skills/tracing), [volumes](skills/volumes), [workflows](skills/workflows), [workspaces](skills/workspaces) |
 | **Operate** | [logs](skills/logs), [monitor](skills/monitor), [status](skills/status) |
 | **Manage** | [access-control](skills/access-control), [access-tokens](skills/access-tokens), [docs](skills/docs), [onboarding](skills/onboarding), [secrets](skills/secrets) |
-| **Meta** | [skill-sync](skills/skill-sync) — keeps the 22 deploy/operate/manage skills aligned with the platform OpenAPI spec, public docs, and recent session transcripts. Runs weekly via GitHub Actions; opens a PR, never auto-merges. Explicit-only invocation. |
+| **Meta** | [skill-sync](skills/skill-sync) — keeps the 22 deploy/operate/manage skills aligned with the platform OpenAPI spec, public docs, and recent session transcripts. **Manual invocation only** (local CLI or GitHub Actions "Run workflow" button); never scheduled. Opens a PR, never auto-merges. |
 
 Installed skill names are namespaced as `truefoundry-<skill>` (e.g., `truefoundry-deploy`).
 

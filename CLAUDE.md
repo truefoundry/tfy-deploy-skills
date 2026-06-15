@@ -45,7 +45,7 @@ The Claude Code plugin lives in `.claude-plugin/` (plugin.json + marketplace.jso
 Four skills have `disable-model-invocation: "true"` and require explicit user intent: **deploy**, **helm**, **llm-deploy**, **skill-sync**. If CLAUDE.md is tracked in git, `validate-skills.sh` checks that these four skill names appear in it.
 
 ### Skill-sync meta-skill
-`skill-sync` is a self-update flow for this repo (not a deploy skill). It fetches the TrueFoundry OpenAPI spec, crawls a known list of docs pages, mines recent Claude session transcripts under `~/.claude/projects/`, classifies candidate edits by confidence tier, and opens a PR. It never auto-merges. A weekly GitHub Actions cron at `.github/workflows/skill-sync.yml` runs it on Mondays. See `skills/skill-sync/SKILL.md`.
+`skill-sync` is a self-update flow for this repo (not a deploy skill). It fetches the TrueFoundry OpenAPI spec, crawls a known list of docs pages, mines recent Claude session transcripts under `~/.claude/projects/`, classifies candidate edits by confidence tier, and opens a PR. It never auto-merges. **Manual invocation only** — there is no schedule. The only invocation paths are local CLI (`bash skills/skill-sync/scripts/run-sync.sh`) and the GitHub Actions `workflow_dispatch` button. See `skills/skill-sync/SKILL.md`.
 
 ## Critical Rules
 

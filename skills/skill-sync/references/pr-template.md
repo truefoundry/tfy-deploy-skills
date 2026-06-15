@@ -65,7 +65,6 @@ bash skills/skill-sync/scripts/run-sync.sh                  # full run
 
 ## Title format
 
-`chore(skills): scheduled sync — ${SYNC_DATE_UTC}` for cron runs.
-`chore(skills): manual sync — ${SYNC_DATE_UTC}` for manual runs.
+`chore(skills): manual sync — ${SYNC_DATE_UTC}`
 
-The date suffix makes the branch name (`skill-sync/YYYY-MM-DD`) deterministic per UTC day, so two manual runs on the same day update the same PR.
+skill-sync is manual-only — there is no scheduled or "auto" variant. The date suffix makes the branch name (`skill-sync/YYYY-MM-DD`) deterministic per UTC day, so two manual runs on the same day update the same PR.

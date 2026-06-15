@@ -83,7 +83,7 @@ fi
 # ── Build candidate list ────────────────────────────────────────────────────
 # v1 (this file): emit a drift summary, do NOT mutate any tracked files yet.
 # Each per-rule diff implementation lands as a follow-up PR that adds a
-# function here. The first cron run on a green tree will therefore produce
+# function here. The first manual run on a green tree will therefore produce
 # a PR with only Tier 3 items (drift report). That's intentional — earning
 # trust before any auto-apply happens.
 
@@ -229,7 +229,7 @@ else
   gh pr create \
     --base main \
     --head "$BRANCH" \
-    --title "chore(skills): scheduled sync — ${SYNC_DATE_UTC}" \
+    --title "chore(skills): manual sync — ${SYNC_DATE_UTC}" \
     --body-file "$BODY_FILE" >/dev/null
   log "opened PR for branch $BRANCH."
 fi
