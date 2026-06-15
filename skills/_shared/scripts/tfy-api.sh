@@ -12,6 +12,15 @@
 
 set -euo pipefail
 
+# Pre-flight: required binaries. Give a clear message instead of the cryptic
+# "command not found: curl" that has surfaced repeatedly in deploy sessions.
+for bin in curl head; do
+  if ! command -v "$bin" >/dev/null 2>&1; then
+    echo "{\"error\": \"$bin not found in PATH. Install it (e.g., 'brew install $bin' on macOS, 'apt-get install -y $bin' on Debian/Ubuntu) and retry. PATH=$PATH\"}" >&2
+    exit 1
+  fi
+done
+
 # Load .env if present (safe line-by-line parser — never `source` .env)
 if [[ -f ".env" ]]; then
   while IFS= read -r line || [[ -n "$line" ]]; do

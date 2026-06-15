@@ -80,18 +80,40 @@ If your `.env` only has `TFY_BASE_URL`, derive CLI host before running `tfy depl
 export TFY_HOST="${TFY_HOST:-${TFY_BASE_URL%/}}"
 ```
 
-## Workspace FQN Rule — MANDATORY
+## Workspace Confirmation Gate — MANDATORY (numbered, enforced)
 
 > **HARD RULE: Never auto-pick a workspace. Never silently select a workspace. Always ask the user to confirm, even if there is only one workspace available.**
 
-Deploying to the wrong workspace can be disruptive and hard to reverse. You MUST follow this flow:
+Deploying to the wrong workspace can be disruptive and hard to reverse. Treat this as a **gate**: no manifest is written, no `tfy apply` / `tfy deploy` / `PUT /api/svc/v1/apps` runs, and no manifest field that contains a workspace FQN is filled in until *all six* of these steps below have happened in order. The gate is not optional and is not bypassed by `TFY_WORKSPACE_FQN` being preset — env vars are stale by default.
 
-1. **If `TFY_WORKSPACE_FQN` is set in the environment** — confirm with the user: "I see workspace `X` in your environment. Should I deploy there?"
-2. **If only one workspace is returned by the API** — still confirm: "You have access to workspace `X`. Should I deploy there?"
-4. **If multiple workspaces exist** — present the list and ask the user to choose.
-5. **If no workspace is found** — STOP and ask. Suggest using the `workspaces` skill or the TrueFoundry dashboard.
+**Step 1.** List the workspaces the user actually has access to:
 
-**Do NOT skip confirmation even when the choice seems obvious.** The user must explicitly approve the target workspace before any manifest is created or deployment is started.
+```bash
+TFY_API_SH=~/.claude/skills/truefoundry-workspaces/scripts/tfy-api.sh
+bash "$TFY_API_SH" GET /api/svc/v1/workspaces
+```
+
+**Step 2.** Decide which case applies:
+
+- `TFY_WORKSPACE_FQN` is set in env → quote it back to the user verbatim and ask: "I see `<FQN>` in your env. Deploy there? (yes / different workspace / cancel)".
+- Exactly one workspace returned → quote it back: "You have access to workspace `<FQN>`. Deploy there? (yes / cancel)".
+- Multiple workspaces returned → render them as a numbered list and ask the user to pick one. Show each workspace's FQN, cluster, and any obvious label (e.g., `prod-ws` vs `dev-ws`).
+- Zero workspaces → STOP. Tell the user no workspace was found, point at the `workspaces` skill and the dashboard, and exit the flow.
+
+**Step 3.** Wait for the user's explicit reply. The reply must name a workspace or say `cancel`. Treat "ok", "yes", "go", or a thumbs-up only as confirmation of the FQN you just quoted — never as a license to auto-pick from a multi-workspace list.
+
+**Step 4.** Record the user-confirmed workspace FQN locally (e.g., a variable in the same turn). Do not re-resolve it later from env — the env value may differ.
+
+**Step 5.** Substitute the confirmed FQN into every manifest field that needs one (`workspace_fqn`, `--workspace_fqn` flag, `workspaceFqn` query param, etc.). Re-quoting the FQN back in the next message is good belt-and-suspenders.
+
+**Step 6.** Only now run the apply/deploy command.
+
+**Do NOT skip confirmation even when the choice seems obvious.** Past sessions have deployed against the wrong workspace because the model treated `TFY_WORKSPACE_FQN` as an answer rather than a hint, or auto-picked the only-one-workspace case to "save the user a click". Don't.
+
+**Anti-patterns to avoid:**
+- "I'll use `${TFY_WORKSPACE_FQN}` since it's set" — no, ask first.
+- "There's only one workspace, so I'll just use it" — no, ask first.
+- Filling in `workspace_fqn: cluster-id:workspace-name` from a previous turn without re-confirming — workspace identity is per-deploy, not session-sticky.
 
 ## .env File
 

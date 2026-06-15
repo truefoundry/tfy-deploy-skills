@@ -474,6 +474,8 @@ Persistent volume for data storage shared across services.
 | `storage_class` | string | No | -- | Kubernetes storage class. Cluster-specific. |
 | `workspace_fqn` | string | Yes | -- | Workspace FQN. |
 
+> **Do NOT add a top-level `config` field to a volume manifest.** Including one will fail with `must match exactly one schema in oneOf`. The `config` key only appears nested under [`mounts[]`](#mounts) on a service/job manifest (e.g., `mounts: [{type: volume, name: shared-data, mount_path: /data}]`).
+
 ### Minimal Example
 
 ```yaml
@@ -483,6 +485,58 @@ size: "100Gi"
 access_mode: ReadWriteOnce
 workspace_fqn: cluster-id:workspace-name
 ```
+
+---
+
+## Secret Group
+
+Manage a TrueFoundry secret group via declarative manifest, applied with `tfy apply -f secret-group.yaml`. Use this when you want secret-group state managed alongside service manifests in git.
+
+> The interactive `tfy_secret_groups_create` tool call and direct `POST /api/svc/v1/secret-groups` are alternatives (see the `secrets` skill). The manifest form below is what `tfy apply` accepts.
+
+### Top-level Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Secret group name. Lowercase alphanumeric and hyphens only. |
+| `type` | string | Yes | Must be `secret-group` |
+| `integration_fqn` | string | Yes | FQN of the secret-store integration (cloud provider's secret manager). Required by `tfy apply`. List options with `GET /api/svc/v1/provider-accounts?type=secret-store` and pick the integration matching the workspace's cloud (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager). |
+| `workspace_fqn` | string | Yes | Workspace FQN. |
+| `collaborators` | array | Yes | Access control list. Required by `tfy apply`. At least one entry must be present — set yourself or a team as admin. See [Collaborators](#collaborators). |
+| `secrets` | array | Yes | List of `{key, value}` pairs. At least one secret required. Values should be sourced from environment variables, never inlined in the manifest if sensitive. |
+
+### Required-Fields Gotcha
+
+`integration_fqn` and `collaborators` are both required when applying via `tfy apply -f`. Sessions have repeatedly failed with `must have required property 'integration_fqn'` or `must have required property 'collaborators'` because the model wrote a minimal manifest with only `name`/`secrets`. Always include both.
+
+### Minimal Example
+
+```yaml
+name: my-app-secrets
+type: secret-group
+integration_fqn: "secret-store:my-org:aws-secrets-manager"
+workspace_fqn: cluster-id:workspace-name
+collaborators:
+  - subject: "user:alice@example.com"
+    role_id: admin
+secrets:
+  - key: DB_PASSWORD
+    value: ${DB_PASSWORD}   # set the env var before `tfy apply`; do not paste raw secrets in the file
+  - key: API_KEY
+    value: ${API_KEY}
+```
+
+### Apply
+
+```bash
+# SECURITY: export secret values as env vars first; do not write them into the file.
+export DB_PASSWORD=...
+export API_KEY=...
+# tfy apply substitutes ${VAR} from the calling shell at apply time.
+tfy apply -f secret-group.yaml
+```
+
+After `apply`, reference the secrets from service manifests using `tfy-secret://<tenant>:<group-name>:<key>` (see [Environment Variables](#environment-variables)).
 
 ---
 
@@ -1627,6 +1681,7 @@ integrations:
 | `notebook` | Jupyter notebook environment |
 | `ssh-server` | Remote development via SSH |
 | `volume` | Persistent volume |
+| `secret-group` | Managed secret group (alternative to interactive create) |
 | `application-set` | Multi-resource deployment |
 | `workflow` | Python DAG orchestration (Flyte-based) |
 | `agent` | AI agent registration |

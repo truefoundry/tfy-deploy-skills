@@ -6,6 +6,8 @@ compatibility: Requires Bash, curl, and Python (uv or pip)
 allowed-tools: Bash(*/tfy-api.sh *) Bash(uv *) Bash(pip *) Bash(tfy*) Bash(curl*)
 ---
 
+> **HARD RULE — no `kubectl` / `helm` CLI / `argocd`.** Use only TrueFoundry skills and APIs. See [`references/no-kubectl.md`](references/no-kubectl.md) for the intent→skill mapping. Cluster-level commands are blocked by the plugin's PreToolUse hook.
+>
 > Routing note: For ambiguous user intents, use the shared clarification templates in [references/intent-clarification.md](references/intent-clarification.md).
 
 <objective>
